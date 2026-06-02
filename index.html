@@ -1,1 +1,276 @@
+using UnityEngine;
 
+public class GameManager : MonoBehaviour
+{
+    public static GameManager Instance;
+
+    public int wave = 1;
+    public int enemiesAlive = 0;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public void EnemyKilled()
+    {
+        enemiesAlive--;
+
+        if(enemiesAlive <= 0)
+        {
+            wave++;
+            FindObjectOfType<EnemySpawner>().SpawnWave();
+        }
+    }
+}
+              using UnityEngine;
+
+[RequireComponent(typeof(CharacterController))]
+public class PlayerController : MonoBehaviour
+{
+    CharacterController controller;
+
+    public float speed = 8f;
+    public float gravity = -9.81f;
+
+    Vector3 velocity;
+
+    public int maxHealth = 100;
+    public int currentHealth;
+
+    public int level = 1;
+    public int xp = 0;
+    public int xpNeeded = 100;
+
+    public Transform firePoint;
+    public GameObject bulletPrefab;
+
+    void Start()
+    {
+        controller = GetComponent<CharacterController>();
+        currentHealth = maxHealth;
+    }
+
+    void Update()
+    {
+        Move();
+        Shoot();
+    }
+
+    void Move()
+    {
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
+
+        Vector3 move =
+            transform.right * x +
+            transform.forward * z;
+
+        controller.Move(move * speed * Time.deltaTime);
+
+        velocity.y += gravity * Time.deltaTime;
+
+        controller.Move(velocity * Time.deltaTime);
+    }
+
+    void Shoot()
+    {
+        if(Input.GetMouseButtonDown(0))
+        {
+            GameObject bullet =
+                Instantiate(
+                    bulletPrefab,
+                    firePoint.position,
+                    firePoint.rotation);
+
+            Rigidbody rb =
+                bullet.GetComponent<Rigidbody>();
+
+            rb.linearVelocity =
+                firePoint.forward * 40f;
+
+            Destroy(bullet,5f);
+        }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+
+        if(currentHealth <= 0)
+        {
+            Debug.Log("Game Over");
+        }
+    }
+
+    public void GainXP(int amount)
+    {
+        xp += amount;
+
+        if(xp >= xpNeeded)
+        {
+            level++;
+            xp -= xpNeeded;
+            xpNeeded += 50;
+
+            Debug.Log("Level Up " + level);
+        }
+    }
+}
+          using UnityEngine;
+
+public class Bullet : MonoBehaviour
+{
+    public int damage = 25;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Enemy enemy =
+            other.GetComponent<Enemy>();
+
+        if(enemy != null)
+        {
+            enemy.TakeDamage(damage);
+            Destroy(gameObject);
+        }
+    }
+}
+              using UnityEngine;
+using UnityEngine.AI;
+
+[RequireComponent(typeof(NavMeshAgent))]
+public class Enemy : MonoBehaviour
+{
+    NavMeshAgent agent;
+
+    PlayerController player;
+
+    public int maxHealth = 50;
+    public int currentHealth;
+
+    public int damage = 10;
+
+    public int xpReward = 25;
+
+    float attackCooldown = 1.5f;
+    float timer;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+
+        player =
+            FindObjectOfType<PlayerController>();
+
+        agent =
+            GetComponent<NavMeshAgent>();
+    }
+
+    void Update()
+    {
+        if(player == null) return;
+
+        agent.SetDestination(
+            player.transform.position);
+
+        timer += Time.deltaTime;
+
+        if(Vector3.Distance(
+            transform.position,
+            player.transform.position) < 2f)
+        {
+            if(timer >= attackCooldown)
+            {
+                timer = 0;
+                player.TakeDamage(damage);
+            }
+        }
+    }
+
+    public void TakeDamage(int damageAmount)
+    {
+        currentHealth -= damageAmount;
+
+        if(currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        player.GainXP(xpReward);
+
+        GameManager.Instance.EnemyKilled();
+
+        Destroy(gameObject);
+    }
+}
+          using UnityEngine;
+
+public class EnemySpawner : MonoBehaviour
+{
+    public GameObject enemyPrefab;
+
+    public Transform[] spawnPoints;
+
+    public int baseEnemies = 5;
+
+    void Start()
+    {
+        SpawnWave();
+    }
+
+    public void SpawnWave()
+    {
+        int amount =
+            baseEnemies +
+            GameManager.Instance.wave * 2;
+
+        GameManager.Instance.enemiesAlive =
+            amount;
+
+        for(int i = 0; i < amount; i++)
+        {
+            int randomSpawn =
+                Random.Range(
+                    0,
+                    spawnPoints.Length);
+
+            Instantiate(
+                enemyPrefab,
+                spawnPoints[randomSpawn].position,
+                Quaternion.identity);
+        }
+
+        Debug.Log(
+            "Wave " +
+            GameManager.Instance.wave +
+            " gestart");
+    }
+}
+          using UnityEngine;
+
+public class ThirdPersonCamera : MonoBehaviour
+{
+    public Transform target;
+
+    public Vector3 offset =
+        new Vector3(0,5,-8);
+
+    public float smooth = 5f;
+
+    void LateUpdate()
+    {
+        Vector3 desired =
+            target.position + offset;
+
+        transform.position =
+            Vector3.Lerp(
+                transform.position,
+                desired,
+                smooth * Time.deltaTime);
+
+        transform.LookAt(target);
+    }
+}
