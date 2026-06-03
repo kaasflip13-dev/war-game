@@ -1,3 +1,6 @@
+// ============================================================
+//  GAME MANAGER
+// ============================================================
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -9,6 +12,12 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
+        // Singleton guard: destroy duplicate instances
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
     }
 
@@ -16,24 +25,33 @@ public class GameManager : MonoBehaviour
     {
         enemiesAlive--;
 
-        if(enemiesAlive <= 0)
+        if (enemiesAlive <= 0)
         {
             wave++;
-            FindObjectOfType<EnemySpawner>().SpawnWave();
+
+            // FindFirstObjectByType replaces the deprecated FindObjectOfType
+            EnemySpawner spawner = FindFirstObjectByType<EnemySpawner>();
+            if (spawner != null)
+                spawner.SpawnWave();
         }
     }
 }
-              using UnityEngine;
 
+
+// ============================================================
+//  PLAYER CONTROLLER
+// ============================================================
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     CharacterController controller;
 
     public float speed = 8f;
-    public float gravity = -9.81f;
+    public float gravity = -20f;      // Stronger gravity feels better for action games
+    public float jumpHeight = 2f;
 
     Vector3 velocity;
+    bool isGrounded;
 
     public int maxHealth = 100;
     public int currentHealth;
@@ -59,6 +77,11 @@ public class PlayerController : MonoBehaviour
 
     void Move()
     {
+        // Ground check — resets vertical velocity so gravity doesn't stack infinitely
+        isGrounded = controller.isGrounded;
+        if (isGrounded && velocity.y < 0f)
+            velocity.y = -2f;   // Small negative keeps the controller grounded reliably
+
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
@@ -68,38 +91,47 @@ public class PlayerController : MonoBehaviour
 
         controller.Move(move * speed * Time.deltaTime);
 
-        velocity.y += gravity * Time.deltaTime;
+        // Optional jump
+        if (Input.GetButtonDown("Jump") && isGrounded)
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
+        velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
     }
 
     void Shoot()
     {
-        if(Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
-            GameObject bullet =
-                Instantiate(
-                    bulletPrefab,
-                    firePoint.position,
-                    firePoint.rotation);
+            if (bulletPrefab == null || firePoint == null)
+            {
+                Debug.LogWarning("Bullet prefab or fire point not assigned.");
+                return;
+            }
 
-            Rigidbody rb =
-                bullet.GetComponent<Rigidbody>();
+            GameObject bullet = Instantiate(
+                bulletPrefab,
+                firePoint.position,
+                firePoint.rotation);
 
-            rb.linearVelocity =
-                firePoint.forward * 40f;
+            Rigidbody rb = bullet.GetComponent<Rigidbody>();
 
-            Destroy(bullet,5f);
+            if (rb != null)
+                rb.linearVelocity = firePoint.forward * 40f;  // Use rb.velocity if on Unity < 6
+
+            Destroy(bullet, 5f);
         }
     }
 
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
+        currentHealth = Mathf.Max(currentHealth, 0);    // Never go below 0
 
-        if(currentHealth <= 0)
+        if (currentHealth <= 0)
         {
             Debug.Log("Game Over");
+            // Hook in your game-over logic or event here
         }
     }
 
@@ -107,51 +139,58 @@ public class PlayerController : MonoBehaviour
     {
         xp += amount;
 
-        if(xp >= xpNeeded)
+        while (xp >= xpNeeded)   // 'while' handles multi-level jumps from large XP rewards
         {
-            level++;
             xp -= xpNeeded;
+            level++;
             xpNeeded += 50;
-
-            Debug.Log("Level Up " + level);
+            Debug.Log("Level Up! Now level " + level);
         }
     }
 }
-          using UnityEngine;
 
+
+// ============================================================
+//  BULLET
+// ============================================================
 public class Bullet : MonoBehaviour
 {
     public int damage = 25;
 
     private void OnTriggerEnter(Collider other)
     {
-        Enemy enemy =
-            other.GetComponent<Enemy>();
+        // Ignore collisions with the player itself
+        if (other.CompareTag("Player")) return;
 
-        if(enemy != null)
+        Enemy enemy = other.GetComponent<Enemy>();
+
+        if (enemy != null)
         {
             enemy.TakeDamage(damage);
             Destroy(gameObject);
         }
     }
 }
-              using UnityEngine;
+
+
+// ============================================================
+//  ENEMY
+// ============================================================
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class Enemy : MonoBehaviour
 {
     NavMeshAgent agent;
-
     PlayerController player;
 
     public int maxHealth = 50;
     public int currentHealth;
 
     public int damage = 10;
-
     public int xpReward = 25;
 
+    public float attackRange = 2f;
     float attackCooldown = 1.5f;
     float timer;
 
@@ -159,31 +198,28 @@ public class Enemy : MonoBehaviour
     {
         currentHealth = maxHealth;
 
-        player =
-            FindObjectOfType<PlayerController>();
+        // FindFirstObjectByType replaces the deprecated FindObjectOfType
+        player = FindFirstObjectByType<PlayerController>();
 
-        agent =
-            GetComponent<NavMeshAgent>();
+        agent = GetComponent<NavMeshAgent>();
     }
 
     void Update()
     {
-        if(player == null) return;
+        if (player == null) return;
 
-        agent.SetDestination(
-            player.transform.position);
+        agent.SetDestination(player.transform.position);
 
         timer += Time.deltaTime;
 
-        if(Vector3.Distance(
+        float distance = Vector3.Distance(
             transform.position,
-            player.transform.position) < 2f)
+            player.transform.position);
+
+        if (distance < attackRange && timer >= attackCooldown)
         {
-            if(timer >= attackCooldown)
-            {
-                timer = 0;
-                player.TakeDamage(damage);
-            }
+            timer = 0f;
+            player.TakeDamage(damage);
         }
     }
 
@@ -191,29 +227,30 @@ public class Enemy : MonoBehaviour
     {
         currentHealth -= damageAmount;
 
-        if(currentHealth <= 0)
-        {
+        if (currentHealth <= 0)
             Die();
-        }
     }
 
     void Die()
     {
-        player.GainXP(xpReward);
+        if (player != null)
+            player.GainXP(xpReward);
 
-        GameManager.Instance.EnemyKilled();
+        if (GameManager.Instance != null)
+            GameManager.Instance.EnemyKilled();
 
         Destroy(gameObject);
     }
 }
-          using UnityEngine;
 
+
+// ============================================================
+//  ENEMY SPAWNER
+// ============================================================
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject enemyPrefab;
-
     public Transform[] spawnPoints;
-
     public int baseEnemies = 5;
 
     void Start()
@@ -223,19 +260,24 @@ public class EnemySpawner : MonoBehaviour
 
     public void SpawnWave()
     {
-        int amount =
-            baseEnemies +
-            GameManager.Instance.wave * 2;
-
-        GameManager.Instance.enemiesAlive =
-            amount;
-
-        for(int i = 0; i < amount; i++)
+        if (enemyPrefab == null)
         {
-            int randomSpawn =
-                Random.Range(
-                    0,
-                    spawnPoints.Length);
+            Debug.LogError("Enemy prefab not assigned on EnemySpawner.");
+            return;
+        }
+
+        if (spawnPoints == null || spawnPoints.Length == 0)
+        {
+            Debug.LogError("No spawn points assigned on EnemySpawner.");
+            return;
+        }
+
+        int amount = baseEnemies + GameManager.Instance.wave * 2;
+        GameManager.Instance.enemiesAlive = amount;
+
+        for (int i = 0; i < amount; i++)
+        {
+            int randomSpawn = Random.Range(0, spawnPoints.Length);
 
             Instantiate(
                 enemyPrefab,
@@ -243,34 +285,38 @@ public class EnemySpawner : MonoBehaviour
                 Quaternion.identity);
         }
 
-        Debug.Log(
-            "Wave " +
-            GameManager.Instance.wave +
-            " gestart");
+        Debug.Log("Wave " + GameManager.Instance.wave + " started — enemies: " + amount);
     }
 }
-          using UnityEngine;
 
+
+// ============================================================
+//  THIRD PERSON CAMERA
+// ============================================================
 public class ThirdPersonCamera : MonoBehaviour
 {
     public Transform target;
 
-    public Vector3 offset =
-        new Vector3(0,5,-8);
-
+    public float distance = 8f;
+    public float height = 5f;
     public float smooth = 5f;
 
     void LateUpdate()
     {
+        if (target == null) return;
+
+        // Follow behind the target based on its actual facing direction
+        // so the camera rotates with the player instead of always pointing north
         Vector3 desired =
-            target.position + offset;
+            target.position
+            - target.forward * distance
+            + Vector3.up * height;
 
-        transform.position =
-            Vector3.Lerp(
-                transform.position,
-                desired,
-                smooth * Time.deltaTime);
+        transform.position = Vector3.Lerp(
+            transform.position,
+            desired,
+            smooth * Time.deltaTime);
 
-        transform.LookAt(target);
+        transform.LookAt(target.position + Vector3.up * 1.5f); // Look at chest height
     }
 }
