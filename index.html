@@ -1,322 +1,566 @@
-// ============================================================
-//  GAME MANAGER
-// ============================================================
-using UnityEngine;
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WAVE STRIKER</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cyan:#00e5ff;--red:#ff1744;--gold:#ffd600;--green:#69ff47;
+  --bg:#060a0f;--panel:#0d1520;--border:#1a2a3a;
+}
+body{background:var(--bg);color:#fff;font-family:'Rajdhani',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;user-select:none}
 
-public class GameManager : MonoBehaviour
-{
-    public static GameManager Instance;
+/* HUD */
+#hud{display:flex;gap:24px;align-items:stretch;width:700px;padding:10px 0 8px;font-family:'Orbitron',monospace}
+.hud-box{background:var(--panel);border:1px solid var(--border);padding:8px 14px;flex:1;position:relative;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)}
+.hud-label{font-size:8px;letter-spacing:3px;color:#4a7a9b;text-transform:uppercase}
+.hud-val{font-size:20px;font-weight:700;color:#fff;line-height:1.2}
+.hud-val.cyan{color:var(--cyan);text-shadow:0 0 10px var(--cyan)}
+.hud-val.gold{color:var(--gold);text-shadow:0 0 10px var(--gold)}
+.hud-val.green{color:var(--green)}
 
-    public int wave = 1;
-    public int enemiesAlive = 0;
+/* Bars */
+.bar-wrap{margin-top:4px;height:5px;background:#0a1520;border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width .2s}
+.bar-hp{background:linear-gradient(90deg,#ff1744,#ff6d00)}
+.bar-xp{background:linear-gradient(90deg,#00b0ff,#00e5ff)}
 
-    private void Awake()
-    {
-        // Singleton guard: destroy duplicate instances
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
+/* Canvas */
+.wrap{position:relative}
+canvas{display:block;border:1px solid #1a2a3a;box-shadow:0 0 40px #00e5ff18,0 0 1px #00e5ff55;cursor:crosshair}
+
+/* Overlay */
+#overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(6,10,15,.88);backdrop-filter:blur(4px)}
+#overlay.hidden{display:none}
+.ov-title{font-family:'Orbitron',monospace;font-size:38px;font-weight:900;letter-spacing:6px;color:var(--cyan);text-shadow:0 0 40px var(--cyan),0 0 80px #00e5ff44;text-align:center}
+.ov-sub{font-family:'Rajdhani',sans-serif;font-size:15px;color:#7ab;text-align:center;line-height:2;letter-spacing:1px}
+.ov-sub b{color:#fff}
+#startBtn{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;background:transparent;border:1.5px solid var(--cyan);color:var(--cyan);padding:12px 36px;cursor:pointer;letter-spacing:3px;transition:all .2s;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+#startBtn:hover{background:#00e5ff18;box-shadow:0 0 24px #00e5ff88}
+
+/* Kill feed */
+#killfeed{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:3px;pointer-events:none}
+.kf{font-size:11px;font-family:'Rajdhani',sans-serif;color:#ffd600;letter-spacing:1px;opacity:1;transition:opacity .5s;text-shadow:0 0 8px #ffd600}
+
+#credit{font-size:11px;color:#1a3a4a;margin-top:6px;letter-spacing:1px;font-family:'Rajdhani',sans-serif}
+</style>
+</head>
+<body>
+<div id="hud">
+  <div class="hud-box">
+    <div class="hud-label">Health</div>
+    <div class="hud-val" id="hpVal">100</div>
+    <div class="bar-wrap"><div class="bar-fill bar-hp" id="hpBar" style="width:100%"></div></div>
+  </div>
+  <div class="hud-box">
+    <div class="hud-label">Wave</div>
+    <div class="hud-val cyan" id="waveVal">1</div>
+  </div>
+  <div class="hud-box">
+    <div class="hud-label">Score</div>
+    <div class="hud-val gold" id="scoreVal">0</div>
+  </div>
+  <div class="hud-box">
+    <div class="hud-label">Level / XP</div>
+    <div class="hud-val green" id="lvlVal">Lv 1</div>
+    <div class="bar-wrap"><div class="bar-fill bar-xp" id="xpBar" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <canvas id="c" width="700" height="520"></canvas>
+  <div id="killfeed"></div>
+  <div id="overlay">
+    <div class="ov-title">WAVE STRIKER</div>
+    <div class="ov-sub" id="ovSub">
+      WASD / pijltjes om te bewegen<br>
+      Muis om te richten · Klik om te schieten<br>
+      Overleef alle golven vijanden
+    </div>
+    <button id="startBtn">MISSIE STARTEN</button>
+  </div>
+</div>
+<div id="credit">WAVE STRIKER — browser edition</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+// HUD elements
+const hpVal   = document.getElementById('hpVal');
+const hpBar   = document.getElementById('hpBar');
+const waveVal = document.getElementById('waveVal');
+const scoreVal= document.getElementById('scoreVal');
+const lvlVal  = document.getElementById('lvlVal');
+const xpBar   = document.getElementById('xpBar');
+const overlay = document.getElementById('overlay');
+const ovSub   = document.getElementById('ovSub');
+const startBtn= document.getElementById('startBtn');
+const killfeed= document.getElementById('killfeed');
+
+// ── Game state ──
+let player, bullets, enemies, particles, score, wave, running, paused, raf, mouse;
+let frameCount = 0;
+const keys = {};
+
+// ── Tile map (simple procedural floor) ──
+const TILE = 40;
+const floorCanvas = document.createElement('canvas');
+floorCanvas.width = W; floorCanvas.height = H;
+const fCtx = floorCanvas.getContext('2d');
+
+function buildFloor() {
+  fCtx.fillStyle = '#060a0f';
+  fCtx.fillRect(0, 0, W, H);
+  for (let y = 0; y < H; y += TILE) {
+    for (let x = 0; x < W; x += TILE) {
+      const shade = Math.random() * 0.025;
+      fCtx.fillStyle = `rgba(0,180,255,${shade})`;
+      fCtx.fillRect(x, y, TILE, TILE);
+      fCtx.strokeStyle = '#0d1a26';
+      fCtx.lineWidth = 0.5;
+      fCtx.strokeRect(x, y, TILE, TILE);
     }
-
-    public void EnemyKilled()
-    {
-        enemiesAlive--;
-
-        if (enemiesAlive <= 0)
-        {
-            wave++;
-
-            // FindFirstObjectByType replaces the deprecated FindObjectOfType
-            EnemySpawner spawner = FindFirstObjectByType<EnemySpawner>();
-            if (spawner != null)
-                spawner.SpawnWave();
-        }
-    }
+  }
+  // Grid cross-hairs
+  fCtx.strokeStyle = '#0a2030';
+  fCtx.lineWidth = 1;
+  for (let x = 0; x <= W; x += TILE) { fCtx.beginPath(); fCtx.moveTo(x, 0); fCtx.lineTo(x, H); fCtx.stroke(); }
+  for (let y = 0; y <= H; y += TILE) { fCtx.beginPath(); fCtx.moveTo(0, y); fCtx.lineTo(W, y); fCtx.stroke(); }
 }
 
-
-// ============================================================
-//  PLAYER CONTROLLER
-// ============================================================
-[RequireComponent(typeof(CharacterController))]
-public class PlayerController : MonoBehaviour
-{
-    CharacterController controller;
-
-    public float speed = 8f;
-    public float gravity = -20f;      // Stronger gravity feels better for action games
-    public float jumpHeight = 2f;
-
-    Vector3 velocity;
-    bool isGrounded;
-
-    public int maxHealth = 100;
-    public int currentHealth;
-
-    public int level = 1;
-    public int xp = 0;
-    public int xpNeeded = 100;
-
-    public Transform firePoint;
-    public GameObject bulletPrefab;
-
-    void Start()
-    {
-        controller = GetComponent<CharacterController>();
-        currentHealth = maxHealth;
-    }
-
-    void Update()
-    {
-        Move();
-        Shoot();
-    }
-
-    void Move()
-    {
-        // Ground check — resets vertical velocity so gravity doesn't stack infinitely
-        isGrounded = controller.isGrounded;
-        if (isGrounded && velocity.y < 0f)
-            velocity.y = -2f;   // Small negative keeps the controller grounded reliably
-
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
-
-        Vector3 move =
-            transform.right * x +
-            transform.forward * z;
-
-        controller.Move(move * speed * Time.deltaTime);
-
-        // Optional jump
-        if (Input.GetButtonDown("Jump") && isGrounded)
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
-    }
-
-    void Shoot()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (bulletPrefab == null || firePoint == null)
-            {
-                Debug.LogWarning("Bullet prefab or fire point not assigned.");
-                return;
-            }
-
-            GameObject bullet = Instantiate(
-                bulletPrefab,
-                firePoint.position,
-                firePoint.rotation);
-
-            Rigidbody rb = bullet.GetComponent<Rigidbody>();
-
-            if (rb != null)
-                rb.linearVelocity = firePoint.forward * 40f;  // Use rb.velocity if on Unity < 6
-
-            Destroy(bullet, 5f);
-        }
-    }
-
-    public void TakeDamage(int damage)
-    {
-        currentHealth -= damage;
-        currentHealth = Mathf.Max(currentHealth, 0);    // Never go below 0
-
-        if (currentHealth <= 0)
-        {
-            Debug.Log("Game Over");
-            // Hook in your game-over logic or event here
-        }
-    }
-
-    public void GainXP(int amount)
-    {
-        xp += amount;
-
-        while (xp >= xpNeeded)   // 'while' handles multi-level jumps from large XP rewards
-        {
-            xp -= xpNeeded;
-            level++;
-            xpNeeded += 50;
-            Debug.Log("Level Up! Now level " + level);
-        }
-    }
+// ── Init ──
+function init() {
+  buildFloor();
+  player = {
+    x: W / 2, y: H / 2,
+    r: 14, speed: 4.2,
+    maxHp: 100, hp: 100,
+    invincible: 0, shootCd: 0,
+    level: 1, xp: 0, xpNeeded: 100,
+    angle: 0
+  };
+  bullets = []; enemies = []; particles = [];
+  score = 0; wave = 1; running = true; paused = false;
+  frameCount = 0;
+  mouse = { x: W / 2, y: H / 2 };
+  updateHUD();
+  overlay.classList.add('hidden');
+  spawnWave();
+  if (raf) cancelAnimationFrame(raf);
+  loop();
 }
 
-
-// ============================================================
-//  BULLET
-// ============================================================
-public class Bullet : MonoBehaviour
-{
-    public int damage = 25;
-
-    private void OnTriggerEnter(Collider other)
-    {
-        // Ignore collisions with the player itself
-        if (other.CompareTag("Player")) return;
-
-        Enemy enemy = other.GetComponent<Enemy>();
-
-        if (enemy != null)
-        {
-            enemy.TakeDamage(damage);
-            Destroy(gameObject);
-        }
-    }
+// ── HUD ──
+function updateHUD() {
+  hpVal.textContent   = player.hp;
+  hpBar.style.width   = (player.hp / player.maxHp * 100) + '%';
+  waveVal.textContent = wave;
+  scoreVal.textContent= score;
+  lvlVal.textContent  = 'Lv ' + player.level;
+  xpBar.style.width   = (player.xp / player.xpNeeded * 100) + '%';
 }
 
+// ── Wave spawning ──
+function spawnWave() {
+  const count = 5 + wave * 2;
+  const margin = 50;
+  for (let i = 0; i < count; i++) {
+    // Spawn on edges
+    let x, y;
+    const side = Math.floor(Math.random() * 4);
+    if (side === 0) { x = Math.random() * W; y = margin; }
+    else if (side === 1) { x = W - margin; y = Math.random() * H; }
+    else if (side === 2) { x = Math.random() * W; y = H - margin; }
+    else { x = margin; y = Math.random() * H; }
 
-// ============================================================
-//  ENEMY
-// ============================================================
-using UnityEngine.AI;
+    const tier = wave >= 5 ? (Math.random() < 0.3 ? 'elite' : Math.random() < 0.5 ? 'mid' : 'basic')
+               : wave >= 3 ? (Math.random() < 0.2 ? 'mid' : 'basic') : 'basic';
 
-[RequireComponent(typeof(NavMeshAgent))]
-public class Enemy : MonoBehaviour
-{
-    NavMeshAgent agent;
-    PlayerController player;
-
-    public int maxHealth = 50;
-    public int currentHealth;
-
-    public int damage = 10;
-    public int xpReward = 25;
-
-    public float attackRange = 2f;
-    float attackCooldown = 1.5f;
-    float timer;
-
-    void Start()
-    {
-        currentHealth = maxHealth;
-
-        // FindFirstObjectByType replaces the deprecated FindObjectOfType
-        player = FindFirstObjectByType<PlayerController>();
-
-        agent = GetComponent<NavMeshAgent>();
-    }
-
-    void Update()
-    {
-        if (player == null) return;
-
-        agent.SetDestination(player.transform.position);
-
-        timer += Time.deltaTime;
-
-        float distance = Vector3.Distance(
-            transform.position,
-            player.transform.position);
-
-        if (distance < attackRange && timer >= attackCooldown)
-        {
-            timer = 0f;
-            player.TakeDamage(damage);
-        }
-    }
-
-    public void TakeDamage(int damageAmount)
-    {
-        currentHealth -= damageAmount;
-
-        if (currentHealth <= 0)
-            Die();
-    }
-
-    void Die()
-    {
-        if (player != null)
-            player.GainXP(xpReward);
-
-        if (GameManager.Instance != null)
-            GameManager.Instance.EnemyKilled();
-
-        Destroy(gameObject);
-    }
+    enemies.push({
+      x, y,
+      r: tier === 'elite' ? 18 : tier === 'mid' ? 15 : 12,
+      speed: (tier === 'elite' ? 1.2 : tier === 'mid' ? 1.6 : 2.0) + wave * 0.08,
+      maxHp: tier === 'elite' ? 120 : tier === 'mid' ? 60 : 30,
+      hp:    tier === 'elite' ? 120 : tier === 'mid' ? 60 : 30,
+      damage: tier === 'elite' ? 20 : tier === 'mid' ? 12 : 8,
+      xp: tier === 'elite' ? 50 : tier === 'mid' ? 25 : 10,
+      score: tier === 'elite' ? 300 : tier === 'mid' ? 150 : 50,
+      tier, angle: 0, attackCd: 0,
+      anim: Math.random() * Math.PI * 2
+    });
+  }
 }
 
-
-// ============================================================
-//  ENEMY SPAWNER
-// ============================================================
-public class EnemySpawner : MonoBehaviour
-{
-    public GameObject enemyPrefab;
-    public Transform[] spawnPoints;
-    public int baseEnemies = 5;
-
-    void Start()
-    {
-        SpawnWave();
-    }
-
-    public void SpawnWave()
-    {
-        if (enemyPrefab == null)
-        {
-            Debug.LogError("Enemy prefab not assigned on EnemySpawner.");
-            return;
-        }
-
-        if (spawnPoints == null || spawnPoints.Length == 0)
-        {
-            Debug.LogError("No spawn points assigned on EnemySpawner.");
-            return;
-        }
-
-        int amount = baseEnemies + GameManager.Instance.wave * 2;
-        GameManager.Instance.enemiesAlive = amount;
-
-        for (int i = 0; i < amount; i++)
-        {
-            int randomSpawn = Random.Range(0, spawnPoints.Length);
-
-            Instantiate(
-                enemyPrefab,
-                spawnPoints[randomSpawn].position,
-                Quaternion.identity);
-        }
-
-        Debug.Log("Wave " + GameManager.Instance.wave + " started — enemies: " + amount);
-    }
+// ── Particles ──
+function spawnParticles(x, y, color, n = 8, speed = 3) {
+  if (particles.length > 300) return;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const s = Math.random() * speed + 0.5;
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, maxLife: 18 + Math.random() * 16, color, r: Math.random() * 3 + 1 });
+  }
 }
 
-
-// ============================================================
-//  THIRD PERSON CAMERA
-// ============================================================
-public class ThirdPersonCamera : MonoBehaviour
-{
-    public Transform target;
-
-    public float distance = 8f;
-    public float height = 5f;
-    public float smooth = 5f;
-
-    void LateUpdate()
-    {
-        if (target == null) return;
-
-        // Follow behind the target based on its actual facing direction
-        // so the camera rotates with the player instead of always pointing north
-        Vector3 desired =
-            target.position
-            - target.forward * distance
-            + Vector3.up * height;
-
-        transform.position = Vector3.Lerp(
-            transform.position,
-            desired,
-            smooth * Time.deltaTime);
-
-        transform.LookAt(target.position + Vector3.up * 1.5f); // Look at chest height
-    }
+// ── Kill feed ──
+function addKillFeed(text) {
+  const el = document.createElement('div');
+  el.className = 'kf';
+  el.textContent = text;
+  killfeed.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 1800);
 }
+
+// ── Drawing ──
+function drawPlayer() {
+  const p = player;
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.angle);
+
+  const blink = p.invincible > 0 && Math.floor(p.invincible / 5) % 2 === 0;
+  if (blink) ctx.globalAlpha = 0.3;
+
+  // Shadow
+  ctx.shadowBlur = 20; ctx.shadowColor = '#00e5ff';
+
+  // Body
+  ctx.fillStyle = '#0d2a3a';
+  ctx.beginPath();
+  ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Outer ring
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Direction arrow / gun barrel
+  ctx.fillStyle = '#00e5ff';
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.moveTo(p.r + 6, 0);
+  ctx.lineTo(p.r - 2, -4);
+  ctx.lineTo(p.r - 2, 4);
+  ctx.closePath();
+  ctx.fill();
+
+  // Inner dot
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#00e5ff';
+  ctx.beginPath();
+  ctx.arc(0, 0, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawEnemy(e) {
+  ctx.save();
+  ctx.translate(e.x, e.y);
+  e.anim += 0.05;
+
+  const glow = e.tier === 'elite' ? '#ff1744' : e.tier === 'mid' ? '#d500f9' : '#69ff47';
+  ctx.shadowBlur = 14; ctx.shadowColor = glow;
+
+  if (e.tier === 'elite') {
+    // Diamond shape
+    ctx.fillStyle = '#1a0010';
+    ctx.strokeStyle = '#ff1744';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -e.r);
+    ctx.lineTo(e.r, 0);
+    ctx.lineTo(0, e.r);
+    ctx.lineTo(-e.r, 0);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // Pulsing inner core
+    const p2 = 0.6 + 0.4 * Math.sin(e.anim * 2);
+    ctx.fillStyle = `rgba(255,23,68,${p2})`;
+    ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+  } else if (e.tier === 'mid') {
+    // Hexagon
+    ctx.fillStyle = '#150020';
+    ctx.strokeStyle = '#d500f9';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + e.anim * 0.5;
+      i === 0 ? ctx.moveTo(Math.cos(a) * e.r, Math.sin(a) * e.r)
+              : ctx.lineTo(Math.cos(a) * e.r, Math.sin(a) * e.r);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d500f9';
+    ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
+  } else {
+    // Triangle basic
+    ctx.fillStyle = '#001a08';
+    ctx.strokeStyle = '#69ff47';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -e.r);
+    ctx.lineTo(e.r * 0.87, e.r * 0.5);
+    ctx.lineTo(-e.r * 0.87, e.r * 0.5);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+
+  // HP bar above enemy
+  const bw = e.r * 2;
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#0a1520';
+  ctx.fillRect(-e.r, -e.r - 9, bw, 4);
+  const hpPct = e.hp / e.maxHp;
+  ctx.fillStyle = hpPct > 0.5 ? '#69ff47' : hpPct > 0.25 ? '#ffd600' : '#ff1744';
+  ctx.fillRect(-e.r, -e.r - 9, bw * hpPct, 4);
+
+  ctx.restore();
+}
+
+function drawBullet(b) {
+  ctx.save();
+  ctx.shadowBlur = 14; ctx.shadowColor = '#00e5ff';
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#00e5ff';
+  ctx.beginPath();
+  ctx.arc(b.x, b.y, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// ── Update ──
+function update() {
+  frameCount++;
+  const p = player;
+
+  // Player aim
+  p.angle = Math.atan2(mouse.y - p.y, mouse.x - p.x);
+
+  // Movement
+  let dx = 0, dy = 0;
+  if (keys['ArrowLeft']  || keys['a'] || keys['A']) dx -= 1;
+  if (keys['ArrowRight'] || keys['d'] || keys['D']) dx += 1;
+  if (keys['ArrowUp']    || keys['w'] || keys['W']) dy -= 1;
+  if (keys['ArrowDown']  || keys['s'] || keys['S']) dy += 1;
+  if (dx !== 0 && dy !== 0) { dx *= 0.707; dy *= 0.707; }
+  p.x = Math.max(p.r, Math.min(W - p.r, p.x + dx * p.speed));
+  p.y = Math.max(p.r, Math.min(H - p.r, p.y + dy * p.speed));
+  if (p.invincible > 0) p.invincible--;
+
+  // Shoot
+  if (keys['shoot'] && p.shootCd <= 0) {
+    const bx = p.x + Math.cos(p.angle) * (p.r + 8);
+    const by = p.y + Math.sin(p.angle) * (p.r + 8);
+    bullets.push({ x: bx, y: by, vx: Math.cos(p.angle) * 14, vy: Math.sin(p.angle) * 14, damage: 25 });
+    spawnParticles(bx, by, '#00e5ff', 3, 1.5);
+    p.shootCd = 10;
+  }
+  if (p.shootCd > 0) p.shootCd--;
+
+  // Move bullets
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    b.x += b.vx; b.y += b.vy;
+    if (b.x < 0 || b.x > W || b.y < 0 || b.y > H) bullets.splice(i, 1);
+  }
+
+  // Move enemies & attack
+  enemies.forEach(e => {
+    const ang = Math.atan2(p.y - e.y, p.x - e.x);
+    e.x += Math.cos(ang) * e.speed;
+    e.y += Math.sin(ang) * e.speed;
+    e.attackCd = Math.max(0, e.attackCd - 1);
+
+    // Attack player
+    const dist = Math.hypot(p.x - e.x, p.y - e.y);
+    if (dist < p.r + e.r + 2 && e.attackCd === 0 && p.invincible === 0) {
+      p.hp = Math.max(0, p.hp - e.damage);
+      p.invincible = 90;
+      e.attackCd = 90;
+      spawnParticles(p.x, p.y, '#ff1744', 12, 4);
+      updateHUD();
+      if (p.hp <= 0) { gameOver(); return; }
+    }
+  });
+
+  // Bullets vs enemies
+  outer: for (let bi = bullets.length - 1; bi >= 0; bi--) {
+    const b = bullets[bi];
+    for (let ei = enemies.length - 1; ei >= 0; ei--) {
+      const e = enemies[ei];
+      if (Math.hypot(b.x - e.x, b.y - e.y) < e.r + 4) {
+        bullets.splice(bi, 1);
+        e.hp -= b.damage;
+        spawnParticles(b.x, b.y, e.tier === 'elite' ? '#ff1744' : e.tier === 'mid' ? '#d500f9' : '#69ff47', 5, 2.5);
+        if (e.hp <= 0) {
+          score += e.score;
+          gainXP(e.xp);
+          addKillFeed(e.tier === 'elite' ? '★ ELITE NEERGEHAALD' : e.tier === 'mid' ? '◆ MID NEERGEHAALD' : '▲ DRONE NEERGEHAALD');
+          spawnParticles(e.x, e.y, e.tier === 'elite' ? '#ff6d00' : '#ffd600', 16, 4);
+          enemies.splice(ei, 1);
+          updateHUD();
+        }
+        continue outer;
+      }
+    }
+  }
+
+  // Wave cleared
+  if (enemies.length === 0) {
+    wave++;
+    updateHUD();
+    spawnParticles(W / 2, H / 2, '#ffd600', 30, 5);
+    if (wave > 10) { winGame(); return; }
+    spawnWave();
+  }
+
+  // Particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const pt = particles[i];
+    pt.x += pt.vx; pt.y += pt.vy;
+    pt.vx *= 0.88; pt.vy *= 0.88;
+    pt.life--;
+    if (pt.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function gainXP(amount) {
+  const p = player;
+  p.xp += amount;
+  while (p.xp >= p.xpNeeded) {
+    p.xp -= p.xpNeeded;
+    p.level++;
+    p.xpNeeded += 50;
+    p.maxHp += 20;
+    p.hp = Math.min(p.hp + 30, p.maxHp); // heal on level up
+    addKillFeed('⬆ LEVEL UP — Lv ' + p.level);
+  }
+  updateHUD();
+}
+
+// ── Draw ──
+function draw() {
+  // Floor
+  ctx.drawImage(floorCanvas, 0, 0);
+
+  // Scanline effect (subtle)
+  if (frameCount % 2 === 0) {
+    ctx.fillStyle = 'rgba(0,0,0,0.04)';
+    for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 1);
+  }
+
+  // Particles
+  const colorMap = {};
+  particles.forEach(pt => { (colorMap[pt.color] = colorMap[pt.color] || []).push(pt); });
+  Object.entries(colorMap).forEach(([col, pts]) => {
+    ctx.fillStyle = col;
+    pts.forEach(pt => {
+      ctx.globalAlpha = pt.life / pt.maxLife;
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2); ctx.fill();
+    });
+  });
+  ctx.globalAlpha = 1;
+
+  // Enemies
+  enemies.forEach(e => drawEnemy(e));
+
+  // Bullets
+  bullets.forEach(b => drawBullet(b));
+
+  // Player
+  drawPlayer();
+
+  // Crosshair at mouse
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,229,255,0.6)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(mouse.x - 10, mouse.y); ctx.lineTo(mouse.x + 10, mouse.y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(mouse.x, mouse.y - 10); ctx.lineTo(mouse.x, mouse.y + 10); ctx.stroke();
+  ctx.beginPath(); ctx.arc(mouse.x, mouse.y, 5, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+
+  // Pause
+  if (paused) {
+    ctx.fillStyle = 'rgba(6,10,15,0.75)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#00e5ff';
+    ctx.font = "700 28px 'Orbitron', monospace";
+    ctx.textAlign = 'center';
+    ctx.fillText('GEPAUZEERD', W / 2, H / 2 - 14);
+    ctx.font = "14px 'Rajdhani', sans-serif";
+    ctx.fillStyle = '#7ab';
+    ctx.fillText('druk P om door te gaan', W / 2, H / 2 + 16);
+    ctx.textAlign = 'left';
+  }
+}
+
+function loop() {
+  if (!running) return;
+  if (!paused) update();
+  draw();
+  raf = requestAnimationFrame(loop);
+}
+
+function gameOver() {
+  running = false;
+  cancelAnimationFrame(raf);
+  document.getElementById('ovSub').innerHTML =
+    'GAME OVER<br>Golf bereikt: <b>' + wave + '</b><br>Score: <b>' + score + '</b>';
+  startBtn.textContent = 'OPNIEUW SPELEN';
+  overlay.classList.remove('hidden');
+}
+
+function winGame() {
+  running = false;
+  cancelAnimationFrame(raf);
+  document.getElementById('ovSub').innerHTML =
+    '🏆 ALLE GOLVEN OVERLEEFD!<br>Score: <b>' + score + '</b><br>Level: <b>' + player.level + '</b>';
+  startBtn.textContent = 'OPNIEUW SPELEN';
+  overlay.classList.remove('hidden');
+}
+
+// ── Controls ──
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (e.key === ' ') { e.preventDefault(); keys['shoot'] = true; }
+  if ((e.key === 'p' || e.key === 'P') && running) paused = !paused;
+});
+window.addEventListener('keyup', e => {
+  keys[e.key] = false;
+  if (e.key === ' ') keys['shoot'] = false;
+});
+
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
+});
+
+canvas.addEventListener('mousedown', e => {
+  if (e.button === 0) keys['shoot'] = true;
+});
+canvas.addEventListener('mouseup', e => {
+  if (e.button === 0) keys['shoot'] = false;
+});
+
+startBtn.addEventListener('click', () => {
+  killfeed.innerHTML = '';
+  init();
+});
+
+// Draw idle screen
+buildFloor();
+ctx.drawImage(floorCanvas, 0, 0);
+</script>
+</body>
+</html>
