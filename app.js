@@ -23,8 +23,8 @@ const MAX_WAVE = 10;
 const weapons = [
   {
     id: "blaster",
-    name: "BLASTER",
-    icon: "🔫",
+    name: "fist",
+    icon: "✊",
     damage: 18,
     fireRate: 180,
     speed: 10,
@@ -36,7 +36,7 @@ const weapons = [
     name: "TRIPLE SHOT",
     icon: "🔫",
     damage: 11,
-    fireRate: 260,
+    fireRate: 560,
     speed: 9,
     spread: .18,
     cost: 120
