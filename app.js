@@ -278,37 +278,37 @@ const bosses = [
 const upgrades = [
   {
     id: "damage",
-    name: "CORE DAMAGE",
+    name: "weapon DAMAGE(+20)",
     icon: "⚔️",
     description: "+10% wapenschade"
   },
   {
     id: "health",
-    name: "ARMOR PLATING",
+    name: "lives(+20)",
     icon: "♥️",
     description: "+20 maximale HP"
   },
   {
     id: "shield",
-    name: "SHIELD MATRIX",
+    name: "SHIELD(+20)",
     icon: "🛡️",
     description: "+20 maximale shield"
   },
   {
     id: "energy",
-    name: "ENERGY CELL",
+    name: "ENERGY",
     icon: "⚡",
     description: "+20 maximale energie"
   },
   {
     id: "speed",
-    name: "THRUSTERS",
+    name: "speed",
     icon: "🚀",
     description: "+8% snelheid"
   },
   {
     id: "cooldown",
-    name: "RAPID CORE",
+    name: "speed weapon",
     icon: "🔥",
     description: "Sneller schieten"
   }
