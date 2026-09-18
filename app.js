@@ -1,8 +1,8 @@
 "use strict";
 
 /* =========================================================
-   SPACEBOTS ULTRA
-   Browser shooter - geen bloed
+   SPACEBOTS the last survivors
+   Browser shooter shooter game
 ========================================================= */
 
 const canvas = document.getElementById("gameCanvas");
