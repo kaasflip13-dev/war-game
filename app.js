@@ -285,13 +285,13 @@ const upgrades = [
   {
     id: "health",
     name: "ARMOR PLATING",
-    icon: "🛡️",
+    icon: "♥️",
     description: "+20 maximale HP"
   },
   {
     id: "shield",
     name: "SHIELD MATRIX",
-    icon: "🔵",
+    icon: "🛡️",
     description: "+20 maximale shield"
   },
   {
