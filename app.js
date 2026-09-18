@@ -278,7 +278,7 @@ const bosses = [
 const upgrades = [
   {
     id: "damage",
-    name: "weapon DAMAGE(+20)",
+    name: "weapon DAMAGE(+10)",
     icon: "⚔️",
     description: "+10% wapenschade"
   },
