@@ -38,7 +38,7 @@ const weapons = [
     damage: 11,
     fireRate: 560,
     speed: 9,
-    spread: .189,
+    spread: .18,
     cost: 120
   },
   {
@@ -1550,7 +1550,7 @@ function hitPlayer(damage) {
 
   state.shake =
     save.settings.shake
-      ? Math.min(20, state.shake + damage * .25)
+      ? Math.min(10, state.shake + damage * .15)
       : 0;
 
 
@@ -1782,7 +1782,7 @@ function pickup(p) {
 
     save.credits += 25;
 
-    text = "CREDITS +25";
+    text = "CREDITS +12";
 
   }
 
@@ -2399,7 +2399,7 @@ function killBoss() {
 
   save.bossKills++;
 
-  save.credits += 500;
+  save.credits += 100;
 
 
   burst(
@@ -2477,15 +2477,15 @@ function gameOver() {
 
 
   document.getElementById(
-    "finalScore"
+    "Score"
   ).textContent = state.score;
 
   document.getElementById(
-    "finalWave"
+    "Wave"
   ).textContent = state.wave;
 
   document.getElementById(
-    "finalKills"
+    "Kills"
   ).textContent = state.kills;
 
 
