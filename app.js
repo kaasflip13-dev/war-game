@@ -38,7 +38,7 @@ const weapons = [
     damage: 11,
     fireRate: 560,
     speed: 9,
-    spread: .18,
+    spread: .189,
     cost: 120
   },
   {
