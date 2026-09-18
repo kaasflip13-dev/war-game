@@ -1,8 +1,8 @@
 "use strict";
 
 /* =========================================================
-   SPACEBOTS the last survivors
-   Browser shooter shooter game
+   SPACEBOTS ULTRA
+   Browser shooter - geen bloed
 ========================================================= */
 
 const canvas = document.getElementById("gameCanvas");
@@ -23,8 +23,8 @@ const MAX_WAVE = 10;
 const weapons = [
   {
     id: "blaster",
-    name: "fist",
-    icon: "✊",
+    name: "BLASTER",
+    icon: "🔫",
     damage: 18,
     fireRate: 180,
     speed: 10,
@@ -36,7 +36,7 @@ const weapons = [
     name: "TRIPLE SHOT",
     icon: "🔫",
     damage: 11,
-    fireRate: 560,
+    fireRate: 260,
     speed: 9,
     spread: .18,
     cost: 120
@@ -278,37 +278,37 @@ const bosses = [
 const upgrades = [
   {
     id: "damage",
-    name: "weapon DAMAGE(+10)",
+    name: "CORE DAMAGE",
     icon: "⚔️",
     description: "+10% wapenschade"
   },
   {
     id: "health",
-    name: "lives(+20)",
-    icon: "♥️",
+    name: "ARMOR PLATING",
+    icon: "🛡️",
     description: "+20 maximale HP"
   },
   {
     id: "shield",
-    name: "SHIELD(+20)",
-    icon: "🛡️",
+    name: "SHIELD MATRIX",
+    icon: "🔵",
     description: "+20 maximale shield"
   },
   {
     id: "energy",
-    name: "ENERGY",
+    name: "ENERGY CELL",
     icon: "⚡",
     description: "+20 maximale energie"
   },
   {
     id: "speed",
-    name: "speed",
+    name: "THRUSTERS",
     icon: "🚀",
     description: "+8% snelheid"
   },
   {
     id: "cooldown",
-    name: "speed weapon",
+    name: "RAPID CORE",
     icon: "🔥",
     description: "Sneller schieten"
   }
@@ -1550,7 +1550,7 @@ function hitPlayer(damage) {
 
   state.shake =
     save.settings.shake
-      ? Math.min(10, state.shake + damage * .15)
+      ? Math.min(20, state.shake + damage * .25)
       : 0;
 
 
@@ -1782,7 +1782,7 @@ function pickup(p) {
 
     save.credits += 25;
 
-    text = "CREDITS +12";
+    text = "CREDITS +25";
 
   }
 
@@ -2399,7 +2399,7 @@ function killBoss() {
 
   save.bossKills++;
 
-  save.credits += 100;
+  save.credits += 500;
 
 
   burst(
@@ -2477,15 +2477,15 @@ function gameOver() {
 
 
   document.getElementById(
-    "Score"
+    "finalScore"
   ).textContent = state.score;
 
   document.getElementById(
-    "Wave"
+    "finalWave"
   ).textContent = state.wave;
 
   document.getElementById(
-    "Kills"
+    "finalKills"
   ).textContent = state.kills;
 
 
