@@ -2,7 +2,7 @@
 
 /* =========================================================
    SPACEBOTS ULTRA
-   Browser shooter - geen bloed
+   Browser shooter game
 ========================================================= */
 
 const canvas = document.getElementById("gameCanvas");
@@ -284,25 +284,25 @@ const upgrades = [
   },
   {
     id: "health",
-    name: "ARMOR PLATING",
-    icon: "🛡️",
+    name: "ARMOR",
+    icon: "❤️",
     description: "+20 maximale HP"
   },
   {
     id: "shield",
-    name: "SHIELD MATRIX",
-    icon: "🔵",
+    name: "SHIELD",
+    icon: "🛡️",
     description: "+20 maximale shield"
   },
   {
     id: "energy",
-    name: "ENERGY CELL",
+    name: "ENERGY",
     icon: "⚡",
     description: "+20 maximale energie"
   },
   {
     id: "speed",
-    name: "THRUSTERS",
+    name: "roket sPeed",
     icon: "🚀",
     description: "+8% snelheid"
   },
