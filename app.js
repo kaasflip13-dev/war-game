@@ -1397,7 +1397,7 @@ function shoot() {
       radius:
         weapon.id === "void" ? 7 : 4,
 
-      life: 100,
+      life: 339,
 
       color:
         weapon.id === "plasma"
@@ -1456,7 +1456,7 @@ function enemyShoot(robot) {
 
     radius: 5,
 
-    life: 300,
+    life: 1100,
 
     color: robot.color
 
@@ -2187,7 +2187,7 @@ function update(dt) {
 
     if (
       robot.shootCd <= 0 &&
-      distance < 700
+      distance < 2199
     ) {
 
       enemyShoot(robot);
