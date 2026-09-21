@@ -20,6 +20,27 @@
         <h1>SPACEBOTS</h1>
         <p>THE LAST SURVIVORS</p>
       </div>
+
+      <div id="accountBox" class="account-box">
+
+        <button id="googleLoginBtn" class="google-btn">
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.09-1.8 2.73v2.27h2.92c1.7-1.57 2.68-3.88 2.68-6.64z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.34C2.44 15.98 5.48 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.97 10.71A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.29-1.71V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.34z"/>
+            <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.95l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58z"/>
+          </svg>
+          Inloggen met Google
+        </button>
+
+        <div id="userInfo" class="user-info" style="display:none;">
+          <img id="userPhoto" src="" alt="">
+          <span id="userName"></span>
+          <span id="cloudStatus" class="cloud-status">☁ synced</span>
+          <button id="logoutBtn" class="secondary-button small-btn">UITLOGGEN</button>
+        </div>
+
+      </div>
     </div>
 
     <div class="hero">
@@ -80,10 +101,22 @@
         <small>Kies een planeet</small>
       </button>
 
+      <button class="menu-card" data-panel="skinsPanel">
+        <span>🎨</span>
+        <b>SKINS</b>
+        <small>Verander je robot</small>
+      </button>
+
       <button class="menu-card" data-panel="achievementsPanel">
         <span>🏆</span>
         <b>ACHIEVEMENTS</b>
         <small>Bekijk je prestaties</small>
+      </button>
+
+      <button class="menu-card" data-panel="leaderboardPanel">
+        <span>📡</span>
+        <b>RANGLIJST</b>
+        <small>Top piloten wereldwijd</small>
       </button>
 
       <button class="menu-card" data-panel="settingsPanel">
@@ -96,6 +129,12 @@
         <span>❓</span>
         <b>HOW TO PLAY</b>
         <small>Besturing</small>
+      </button>
+
+      <button class="menu-card" data-panel="rulesPanel">
+        <span>📜</span>
+        <b>REGELS</b>
+        <small>Spel- en ranglijstregels</small>
       </button>
 
     </div>
@@ -149,6 +188,124 @@
       <h2>🌌 KAARTEN</h2>
 
       <div id="mapCards" class="cards"></div>
+
+    </div>
+  </section>
+
+
+  <!-- ================= SKINS ================= -->
+
+  <section id="skinsPanel" class="subscreen">
+    <div class="panel-box">
+
+      <button class="backBtn">← TERUG</button>
+
+      <h2>🎨 SKINS</h2>
+      <p>Verander de kleur van je robot.</p>
+
+      <div class="credits">
+        Credits:
+        <strong id="skinsCreditsValue">0</strong>
+      </div>
+
+      <div id="skinCards" class="cards"></div>
+
+    </div>
+  </section>
+
+
+  <!-- ================= LEADERBOARD ================= -->
+
+  <section id="leaderboardPanel" class="subscreen">
+    <div class="panel-box">
+
+      <button class="backBtn">← TERUG</button>
+
+      <h2>📡 RANGLIJST</h2>
+      <p>De beste piloten wereldwijd, live vanuit de cloud.</p>
+
+      <div id="leaderboardLoggedOut" class="help-text" style="display:none;">
+        Log in met Google om op de ranglijst te verschijnen en de live
+        ranglijst te bekijken.
+      </div>
+
+      <div id="leaderboardStatus" class="help-text">
+        Ranglijst wordt geladen...
+      </div>
+
+      <div id="leaderboardList" class="leaderboard-list"></div>
+
+    </div>
+  </section>
+
+
+  <!-- ================= RULES ================= -->
+
+  <section id="rulesPanel" class="subscreen">
+    <div class="panel-box">
+
+      <button class="backBtn">← TERUG</button>
+
+      <h2>📜 REGELS</h2>
+      <p>Speel eerlijk, heb plezier, en respecteer andere piloten.</p>
+
+      <div class="controls">
+
+        <div>
+          <b>🎯 Eerlijk spel</b>
+          <span>
+            Gebruik geen cheats, macro's, bots of exploits om je score,
+            credits of ranglijstpositie kunstmatig te verhogen.
+          </span>
+        </div>
+
+        <div>
+          <b>🧑‍🚀 Eén account</b>
+          <span>
+            Speel met je eigen Google-account. Deel je voortgang niet en
+            gebruik geen accounts van anderen.
+          </span>
+        </div>
+
+        <div>
+          <b>📡 Ranglijst</b>
+          <span>
+            Als je inlogt worden je naam, profielfoto en beste score
+            publiek zichtbaar op de ranglijst voor alle spelers.
+          </span>
+        </div>
+
+        <div>
+          <b>💾 Cloud-save</b>
+          <span>
+            Je voortgang wordt automatisch opgeslagen in de cloud zodra
+            je bent ingelogd, zodat je op elk apparaat verder kan spelen.
+          </span>
+        </div>
+
+        <div>
+          <b>🙊 Respect</b>
+          <span>
+            Kies geen aanstootgevende of nepnamen. Namen die als
+            beledigend worden gezien kunnen van de ranglijst verwijderd
+            worden.
+          </span>
+        </div>
+
+        <div>
+          <b>🔒 Privacy</b>
+          <span>
+            Log uit op gedeelde apparaten. Je gameplay-statistieken zijn
+            niet gevoelig, maar je account blijft van jou.
+          </span>
+        </div>
+
+      </div>
+
+      <p class="help-text">
+        Deze regels houden SpaceBots Ultra leuk en eerlijk voor iedereen.
+        Speel slim, klim de ranglijst op, en versla de bosses! 🤖
+      </p>
 
     </div>
   </section>
@@ -539,6 +696,14 @@
     </div>
 
   </section>
+
+  <!-- ================= FIREBASE ================= -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+
+  <script src="firebase-config.js"></script>
+  <script src="cloud.js"></script>
 
   <script src="app.js"></script>
 
