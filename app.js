@@ -468,46 +468,10 @@ const defaultSave = {
 };
 
 
-let save = loadSave();
-
-
-function loadSave() {
-
-  try {
-
-    const stored = localStorage.getItem("spacebotsUltraSave");
-
-    if (!stored) {
-      return structuredClone(defaultSave);
-    }
-
-    const data = JSON.parse(stored);
-
-    return {
-      ...structuredClone(defaultSave),
-      ...data,
-      upgrades: {
-        ...defaultSave.upgrades,
-        ...(data.upgrades || {})
-      },
-      settings: {
-        ...defaultSave.settings,
-        ...(data.settings || {})
-      }
-    };
-
-  } catch {
-
-    return structuredClone(defaultSave);
-  }
-}
+let save = structuredClone(defaultSave);
 
 
 function saveGame() {
-  localStorage.setItem(
-    "spacebotsUltraSave",
-    JSON.stringify(save)
-  );
 
   if (window.Cloud) {
     window.Cloud.push(save);
