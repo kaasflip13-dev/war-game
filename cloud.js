@@ -59,6 +59,7 @@ const userInfo = document.getElementById("userInfo");
 const userPhoto = document.getElementById("userPhoto");
 const userName = document.getElementById("userName");
 const cloudStatusEl = document.getElementById("cloudStatus");
+const authGateStatus = document.getElementById("authGateStatus");
 
 const leaderboardList = document.getElementById("leaderboardList");
 const leaderboardStatus = document.getElementById("leaderboardStatus");
@@ -72,6 +73,33 @@ function setCloudStatus(text) {
 }
 
 
+function setGateStatus(text, isError) {
+  if (!authGateStatus) return;
+  authGateStatus.textContent = text;
+  authGateStatus.classList.toggle("error", !!isError);
+}
+
+
+/* =========================================================
+   GATE: nothing plays until the player is signed in
+========================================================= */
+
+if (!cloudReady) {
+
+  setGateStatus(
+    "Cloud-opslag is nog niet ingesteld door de ontwikkelaar " +
+    "(firebase-config.js). Het spel kan nog niet gestart worden.",
+    true
+  );
+
+  if (googleLoginBtn) googleLoginBtn.disabled = true;
+
+} else {
+
+  setGateStatus("Cloud controleren...");
+}
+
+
 /* =========================================================
    AUTH UI
 ========================================================= */
@@ -80,18 +108,20 @@ function updateAccountUI(user) {
 
   if (user) {
 
-    if (googleLoginBtn) googleLoginBtn.style.display = "none";
-    if (userInfo) userInfo.style.display = "flex";
-
     if (userPhoto) userPhoto.src = user.photoURL || "";
     if (userName) userName.textContent = user.displayName || "Piloot";
 
-    if (leaderboardLoggedOut) leaderboardLoggedOut.style.display = "none";
+    if (typeof showScreen === "function") {
+      showScreen("startScreen");
+    }
 
   } else {
 
-    if (googleLoginBtn) googleLoginBtn.style.display = "flex";
-    if (userInfo) userInfo.style.display = "none";
+    if (typeof showScreen === "function") {
+      showScreen("authGateScreen");
+    }
+
+    setGateStatus("Log in om te spelen.");
 
     if (leaderboardLoggedOut) leaderboardLoggedOut.style.display = "block";
   }
@@ -102,21 +132,19 @@ if (googleLoginBtn) {
 
   googleLoginBtn.addEventListener("click", () => {
 
-    if (!cloudReady) {
-      alert(
-        "Cloud-opslag is nog niet ingesteld door de ontwikkelaar " +
-        "(firebase-config.js). Lokale voortgang werkt gewoon."
-      );
-      return;
-    }
+    if (!cloudReady) return;
 
-    setCloudStatus("inloggen...");
+    setGateStatus("inloggen...");
+    googleLoginBtn.disabled = true;
 
-    auth.signInWithPopup(provider).catch(err => {
-      console.error("[SpaceBots] Google sign-in failed:", err);
-      setCloudStatus("inloggen mislukt");
-      alert("Inloggen mislukt: " + err.message);
-    });
+    auth.signInWithPopup(provider)
+      .catch(err => {
+        console.error("[SpaceBots] Google sign-in failed:", err);
+        setGateStatus("Inloggen mislukt: " + err.message, true);
+      })
+      .finally(() => {
+        googleLoginBtn.disabled = false;
+      });
 
   });
 }
