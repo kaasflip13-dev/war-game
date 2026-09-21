@@ -275,6 +275,52 @@ const bosses = [
 ];
 
 
+const skins = [
+  {
+    id: "cyan",
+    name: "NEON CYAN",
+    primary: "#36d9ff",
+    core: "#dffaff",
+    cost: 0
+  },
+  {
+    id: "crimson",
+    name: "CRIMSON RED",
+    primary: "#ff4268",
+    core: "#ffe0e7",
+    cost: 150
+  },
+  {
+    id: "violet",
+    name: "VOID VIOLET",
+    primary: "#a855ff",
+    core: "#f0e0ff",
+    cost: 150
+  },
+  {
+    id: "gold",
+    name: "GOLDEN ELITE",
+    primary: "#ffad42",
+    core: "#fff4e0",
+    cost: 300
+  },
+  {
+    id: "emerald",
+    name: "EMERALD DASH",
+    primary: "#39ff9a",
+    core: "#e0fff0",
+    cost: 300
+  },
+  {
+    id: "chrome",
+    name: "CHROME SILVER",
+    primary: "#cbd5e1",
+    core: "#ffffff",
+    cost: 500
+  }
+];
+
+
 const upgrades = [
   {
     id: "damage",
@@ -365,6 +411,12 @@ const achievementData = [
     description: "Ontgrendel alle wapens."
   },
   {
+    id: "colorful",
+    name: "SKIN COLLECTOR",
+    icon: "🎨",
+    description: "Ontgrendel alle skins."
+  },
+  {
     id: "explorer",
     name: "EXPLORER",
     icon: "🌌",
@@ -387,10 +439,13 @@ const defaultSave = {
 
   selectedWeapon: "blaster",
   selectedMap: "neon",
+  selectedSkin: "cyan",
 
   unlockedWeapons: ["blaster"],
 
   unlockedMaps: ["neon"],
+
+  unlockedSkins: ["cyan"],
 
   upgrades: {
     damage: 0,
@@ -453,6 +508,10 @@ function saveGame() {
     "spacebotsUltraSave",
     JSON.stringify(save)
   );
+
+  if (window.Cloud) {
+    window.Cloud.push(save);
+  }
 }
 
 
@@ -518,6 +577,7 @@ const weaponCards = document.getElementById("weaponCards");
 const upgradeCards = document.getElementById("upgradeCards");
 const mapCards = document.getElementById("mapCards");
 const achievementCards = document.getElementById("achievementCards");
+const skinCards = document.getElementById("skinCards");
 
 
 /* =========================================================
@@ -540,6 +600,10 @@ function showScreen(id) {
   if (id === "startScreen") {
     renderMenu();
   }
+
+  if (id === "leaderboardPanel" && window.Cloud) {
+    window.Cloud.loadLeaderboard();
+  }
 }
 
 
@@ -551,6 +615,7 @@ function renderMenu() {
   renderWeapons();
   renderUpgrades();
   renderMaps();
+  renderSkins();
   renderAchievements();
   renderSettings();
 }
@@ -775,6 +840,91 @@ function renderMaps() {
     });
 
     mapCards.appendChild(card);
+
+  });
+}
+
+
+/* =========================================================
+   SKINS
+========================================================= */
+
+function renderSkins() {
+
+  const creditsEl =
+    document.getElementById("skinsCreditsValue");
+
+  if (creditsEl) {
+    creditsEl.textContent = save.credits;
+  }
+
+  skinCards.innerHTML = "";
+
+  skins.forEach(skin => {
+
+    const unlocked =
+      save.unlockedSkins.includes(skin.id);
+
+    const selected =
+      save.selectedSkin === skin.id;
+
+    const card = document.createElement("div");
+
+    card.className =
+      "card" +
+      (selected ? " selected" : "") +
+      (!unlocked ? " locked" : "");
+
+    card.innerHTML = `
+      <div class="card-icon" style="
+        width:38px;height:38px;border-radius:50%;
+        background:${skin.primary};
+        box-shadow:0 0 18px ${skin.primary};
+        border:2px solid ${skin.core};
+      "></div>
+
+      <h3>${skin.name}</h3>
+
+      <p>Robotkleur voor jouw skin.</p>
+
+      <button>
+        ${
+          unlocked
+            ? selected
+              ? "GESELECTEERD"
+              : "SELECTEER"
+            : "KOOP - " + skin.cost + " CREDITS"
+        }
+      </button>
+    `;
+
+    card.querySelector("button").addEventListener("click", () => {
+
+      if (unlocked) {
+
+        save.selectedSkin = skin.id;
+        saveGame();
+        renderSkins();
+
+      } else if (save.credits >= skin.cost) {
+
+        save.credits -= skin.cost;
+        save.unlockedSkins.push(skin.id);
+        save.selectedSkin = skin.id;
+
+        saveGame();
+
+        renderSkins();
+
+        if (save.unlockedSkins.length >= skins.length) {
+          unlockAchievement("colorful");
+        }
+
+      }
+
+    });
+
+    skinCards.appendChild(card);
 
   });
 }
@@ -3053,14 +3203,19 @@ function drawPlayer() {
   );
 
 
+  const skin =
+    skins.find(s => s.id === save.selectedSkin) ||
+    skins[0];
+
+
   /* ENERGY GLOW */
 
   ctx.shadowBlur = 25;
-  ctx.shadowColor = "#36d9ff";
+  ctx.shadowColor = skin.primary;
 
 
   ctx.fillStyle =
-    "#36d9ff";
+    skin.primary;
 
   ctx.beginPath();
 
@@ -3078,7 +3233,7 @@ function drawPlayer() {
 
 
   ctx.fillStyle =
-    "#dffaff";
+    skin.core;
 
   ctx.beginPath();
 
