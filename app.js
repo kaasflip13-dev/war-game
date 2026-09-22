@@ -4088,4 +4088,390 @@ document.getElementById(
 
 renderMenu();
 
-showScreen("startScreen");
+
+/* =========================================================
+   FIREBASE — SpaceBots Ultra
+   =========================================================
+   Fill in apiKey and appId below from:
+   Firebase console -> gear icon -> Project settings ->
+   scroll to "Your apps" -> your Web app's config.
+========================================================= */
+
+const firebaseConfig = {
+  apiKey: "PASTE_YOUR_API_KEY_HERE",
+  authDomain: "spacebots-ultra.firebaseapp.com",
+  projectId: "spacebots-ultra",
+  storageBucket: "spacebots-ultra.appspot.com",
+  messagingSenderId: "425940718755",
+  appId: "PASTE_YOUR_APP_ID_HERE"
+};
+
+
+let cloudReady = false;
+let auth = null;
+let db = null;
+let provider = null;
+
+try {
+
+  if (firebaseConfig.apiKey === "PASTE_YOUR_API_KEY_HERE") {
+
+    console.warn(
+      "[SpaceBots] firebaseConfig is not filled in yet in app.js — " +
+      "Google login and cloud save are disabled until you paste " +
+      "your real Firebase config values."
+    );
+
+  } else {
+
+    firebase.initializeApp(firebaseConfig);
+
+    auth = firebase.auth();
+    db = firebase.firestore();
+
+    provider = new firebase.auth.GoogleAuthProvider();
+
+    cloudReady = true;
+  }
+
+} catch (err) {
+  console.error("[SpaceBots] Firebase init failed:", err);
+}
+
+
+/* ---------- DOM ---------- */
+
+const googleLoginBtn = document.getElementById("googleLoginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const userPhoto = document.getElementById("userPhoto");
+const userName = document.getElementById("userName");
+const cloudStatusEl = document.getElementById("cloudStatus");
+const authGateStatus = document.getElementById("authGateStatus");
+
+const leaderboardList = document.getElementById("leaderboardList");
+const leaderboardStatus = document.getElementById("leaderboardStatus");
+const leaderboardLoggedOut = document.getElementById("leaderboardLoggedOut");
+
+
+function setCloudStatus(text) {
+  if (cloudStatusEl) cloudStatusEl.textContent = text;
+}
+
+function setGateStatus(text, isError) {
+  if (!authGateStatus) return;
+  authGateStatus.textContent = text;
+  authGateStatus.classList.toggle("error", !!isError);
+}
+
+
+/* ---------- GATE: nothing plays until signed in ---------- */
+
+if (!cloudReady) {
+
+  setGateStatus(
+    "Cloud-opslag is nog niet ingesteld door de ontwikkelaar " +
+    "(firebaseConfig in app.js). Het spel kan nog niet gestart worden.",
+    true
+  );
+
+  if (googleLoginBtn) googleLoginBtn.disabled = true;
+
+} else {
+
+  setGateStatus("Cloud controleren...");
+
+  // Finish a signInWithRedirect() flow if we just came back from it.
+  auth.getRedirectResult().catch(err => {
+    console.error("[SpaceBots] Redirect sign-in failed:", err);
+    setGateStatus("Inloggen mislukt: " + err.message, true);
+  });
+}
+
+
+/* ---------- AUTH UI ---------- */
+
+function updateAccountUI(user) {
+
+  if (user) {
+
+    if (userPhoto) userPhoto.src = user.photoURL || "";
+    if (userName) userName.textContent = user.displayName || "Piloot";
+
+    showScreen("startScreen");
+
+  } else {
+
+    showScreen("authGateScreen");
+
+    setGateStatus("Log in om te spelen.");
+
+    if (leaderboardLoggedOut) leaderboardLoggedOut.style.display = "block";
+  }
+}
+
+
+if (googleLoginBtn) {
+
+  googleLoginBtn.addEventListener("click", () => {
+
+    if (!cloudReady) return;
+
+    setGateStatus("Doorsturen naar Google...");
+    googleLoginBtn.disabled = true;
+
+    // signInWithRedirect works reliably on GitHub Pages, unlike
+    // signInWithPopup, which some browsers/host headers block.
+    auth.signInWithRedirect(provider).catch(err => {
+      console.error("[SpaceBots] Google sign-in failed:", err);
+      setGateStatus("Inloggen mislukt: " + err.message, true);
+      googleLoginBtn.disabled = false;
+    });
+
+  });
+}
+
+
+if (logoutBtn) {
+
+  logoutBtn.addEventListener("click", () => {
+    if (auth) auth.signOut();
+  });
+}
+
+
+if (cloudReady) {
+
+  auth.onAuthStateChanged(user => {
+
+    updateAccountUI(user);
+
+    if (user) {
+      pullAndMergeSave(user);
+    }
+
+  });
+}
+
+
+/* ---------- MERGE CLOUD SAVE INTO LOCAL SAVE ---------- */
+
+function pullAndMergeSave(user) {
+
+  setCloudStatus("synchroniseren...");
+
+  db.collection("users").doc(user.uid).get()
+    .then(doc => {
+
+      if (doc.exists) {
+        mergeCloudDataIntoLocalSave(doc.data());
+      }
+
+      // Whatever we end up with locally becomes the new
+      // source of truth in the cloud too.
+      saveGame();
+      renderMenu();
+
+      setCloudStatus("☁ synced");
+
+    })
+    .catch(err => {
+      console.error("[SpaceBots] Could not load cloud save:", err);
+      setCloudStatus("⚠ offline");
+    });
+}
+
+
+function mergeCloudDataIntoLocalSave(cloudData) {
+
+  if (!cloudData) return;
+
+  const merged = structuredClone(save);
+
+  const maxNumberFields = [
+    "highscore", "bestWave", "totalKills",
+    "credits", "pickups", "bossKills"
+  ];
+
+  maxNumberFields.forEach(field => {
+    if (typeof cloudData[field] === "number") {
+      merged[field] = Math.max(merged[field] || 0, cloudData[field]);
+    }
+  });
+
+  const unionArrayFields = [
+    "unlockedWeapons", "unlockedMaps", "unlockedSkins", "achievements"
+  ];
+
+  unionArrayFields.forEach(field => {
+    if (Array.isArray(cloudData[field])) {
+      merged[field] = Array.from(
+        new Set([...(merged[field] || []), ...cloudData[field]])
+      );
+    }
+  });
+
+  if (cloudData.upgrades && merged.upgrades) {
+    Object.keys(merged.upgrades).forEach(key => {
+      if (typeof cloudData.upgrades[key] === "number") {
+        merged.upgrades[key] = Math.max(
+          merged.upgrades[key],
+          cloudData.upgrades[key]
+        );
+      }
+    });
+  }
+
+  if (cloudData.settings) {
+    merged.settings = { ...merged.settings, ...cloudData.settings };
+  }
+
+  if (typeof cloudData.selectedWeapon === "string") {
+    merged.selectedWeapon = cloudData.selectedWeapon;
+  }
+
+  if (typeof cloudData.selectedMap === "string") {
+    merged.selectedMap = cloudData.selectedMap;
+  }
+
+  if (typeof cloudData.selectedSkin === "string") {
+    merged.selectedSkin = cloudData.selectedSkin;
+  }
+
+  save = merged;
+}
+
+
+/* ---------- PUSH LOCAL SAVE TO THE CLOUD (debounced) ---------- */
+
+let pushTimer = null;
+
+function pushSaveToCloud(saveSnapshot) {
+
+  if (!cloudReady || !auth || !auth.currentUser) return;
+
+  const user = auth.currentUser;
+
+  setCloudStatus("opslaan...");
+
+  clearTimeout(pushTimer);
+
+  pushTimer = setTimeout(() => {
+
+    const data = structuredClone(saveSnapshot);
+
+    const userPayload = {
+      ...data,
+      displayName: user.displayName || "Piloot",
+      photoURL: user.photoURL || "",
+      email: user.email || "",
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection("users").doc(user.uid).set(userPayload, { merge: true })
+      .then(() => {
+
+        setCloudStatus("☁ synced");
+
+        return db.collection("leaderboard").doc(user.uid).set({
+          displayName: user.displayName || "Piloot",
+          photoURL: user.photoURL || "",
+          highscore: data.highscore || 0,
+          bestWave: data.bestWave || 0,
+          totalKills: data.totalKills || 0,
+          bossKills: data.bossKills || 0,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+      })
+      .catch(err => {
+        console.error("[SpaceBots] Cloud save failed:", err);
+        setCloudStatus("⚠ opslaan mislukt");
+      });
+
+  }, 800);
+}
+
+
+/* ---------- LEADERBOARD ---------- */
+
+function loadLeaderboard() {
+
+  if (!leaderboardList) return;
+
+  if (!cloudReady) {
+    leaderboardStatus.style.display = "block";
+    leaderboardStatus.textContent =
+      "Ranglijst is niet beschikbaar (cloud niet geconfigureerd).";
+    leaderboardList.innerHTML = "";
+    return;
+  }
+
+  leaderboardStatus.style.display = "block";
+  leaderboardStatus.textContent = "Ranglijst wordt geladen...";
+  leaderboardList.innerHTML = "";
+
+  db.collection("leaderboard")
+    .orderBy("highscore", "desc")
+    .limit(50)
+    .get()
+    .then(snap => {
+
+      leaderboardStatus.style.display = "none";
+
+      if (snap.empty) {
+        leaderboardStatus.style.display = "block";
+        leaderboardStatus.textContent =
+          "Nog niemand op de ranglijst. Wees de eerste!";
+        return;
+      }
+
+      let rank = 0;
+
+      snap.forEach(doc => {
+
+        rank++;
+
+        const d = doc.data();
+
+        const row = document.createElement("div");
+        row.className = "leaderboard-row";
+
+        row.innerHTML = `
+          <span class="lb-rank">#${rank}</span>
+          <img class="lb-photo" src="${d.photoURL || ""}" alt="">
+          <span class="lb-name">${escapeHtml(d.displayName || "Piloot")}</span>
+          <span class="lb-stat"><small>SCORE</small>${d.highscore || 0}</span>
+          <span class="lb-stat"><small>WAVE</small>${d.bestWave || 0}</span>
+          <span class="lb-stat"><small>KILLS</small>${d.totalKills || 0}</span>
+        `;
+
+        leaderboardList.appendChild(row);
+
+      });
+
+    })
+    .catch(err => {
+
+      console.error("[SpaceBots] Leaderboard load failed:", err);
+
+      leaderboardStatus.style.display = "block";
+      leaderboardStatus.textContent =
+        "Kon ranglijst niet laden. Probeer het later opnieuw.";
+
+    });
+}
+
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+
+window.Cloud = {
+  push: pushSaveToCloud,
+  loadLeaderboard,
+  isReady: () => cloudReady,
+  isSignedIn: () => !!(auth && auth.currentUser)
+};
