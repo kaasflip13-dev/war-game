@@ -435,6 +435,7 @@ const defaultSave = {
   totalKills: 0,
   credits: 0,
   pickups: 0,
+  customUsername: null,
   bossKills: 0,
 
   selectedWeapon: "blaster",
@@ -951,6 +952,13 @@ function renderAchievements() {
 
 function renderSettings() {
 
+  const usernameInput =
+    document.getElementById("usernameInput");
+
+  if (usernameInput && document.activeElement !== usernameInput) {
+    usernameInput.value = save.customUsername || "";
+  }
+
   document.getElementById("soundToggle").checked =
     save.settings.sound;
 
@@ -1004,6 +1012,35 @@ document.getElementById("difficultySelect").addEventListener("change", e => {
 
   save.settings.difficulty = e.target.value;
   saveGame();
+
+});
+
+
+function saveUsername() {
+
+  const input = document.getElementById("usernameInput");
+  const value = input.value.trim().slice(0, 24);
+
+  save.customUsername = value.length > 0 ? value : null;
+
+  saveGame();
+  renderHeaderName();
+}
+
+
+document.getElementById("usernameSaveBtn").addEventListener(
+  "click",
+  saveUsername
+);
+
+
+document.getElementById("usernameInput").addEventListener("keydown", e => {
+
+  if (e.key === "Enter") {
+    e.preventDefault();
+    saveUsername();
+    document.getElementById("usernameInput").blur();
+  }
 
 });
 
@@ -4200,12 +4237,24 @@ if (!cloudReady) {
 
 /* ---------- AUTH UI ---------- */
 
+function renderHeaderName() {
+
+  if (!userName) return;
+
+  const user = auth && auth.currentUser;
+  const name = save.customUsername || (user && user.displayName) || "Piloot";
+
+  userName.textContent = name;
+}
+
+
 function updateAccountUI(user) {
 
   if (user) {
 
     if (userPhoto) userPhoto.src = user.photoURL || "";
-    if (userName) userName.textContent = user.displayName || "Piloot";
+
+    renderHeaderName();
 
     showScreen("startScreen");
 
@@ -4322,6 +4371,7 @@ function pullAndMergeSave(user) {
       // source of truth in the cloud too.
       saveGame();
       renderMenu();
+      renderHeaderName();
 
       setCloudStatus("☁ synced");
 
@@ -4389,11 +4439,28 @@ function mergeCloudDataIntoLocalSave(cloudData) {
     merged.selectedSkin = cloudData.selectedSkin;
   }
 
+  if (typeof cloudData.customUsername === "string" || cloudData.customUsername === null) {
+    merged.customUsername = cloudData.customUsername;
+  }
+
   save = merged;
 }
 
 
 /* ---------- PUSH LOCAL SAVE TO THE CLOUD (debounced) ---------- */
+
+function buildUnlockStatus(items, unlockedIds) {
+
+  const unlocked = new Set(unlockedIds || []);
+  const status = {};
+
+  items.forEach(item => {
+    status[item.id] = unlocked.has(item.id) ? "unlocked" : "locked";
+  });
+
+  return status;
+}
+
 
 let pushTimer = null;
 
@@ -4411,11 +4478,21 @@ function pushSaveToCloud(saveSnapshot) {
 
     const data = structuredClone(saveSnapshot);
 
+    const user = auth.currentUser;
+    const displayName = data.customUsername || (user && user.displayName) || "Piloot";
+
     const userPayload = {
       ...data,
-      displayName: user.displayName || "Piloot",
-      photoURL: user.photoURL || "",
-      email: user.email || "",
+
+      // Per-item unlock status, e.g. { cyan: "unlocked", gold: "locked" },
+      // so it's readable at a glance in the Firestore console.
+      skinsStatus: buildUnlockStatus(skins, data.unlockedSkins),
+      weaponsStatus: buildUnlockStatus(weapons, data.unlockedWeapons),
+      mapsStatus: buildUnlockStatus(maps, data.unlockedMaps),
+
+      displayName,
+      photoURL: (user && user.photoURL) || "",
+      email: (user && user.email) || "",
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
@@ -4425,8 +4502,8 @@ function pushSaveToCloud(saveSnapshot) {
         setCloudStatus("☁ synced");
 
         return db.collection("leaderboard").doc(user.uid).set({
-          displayName: user.displayName || "Piloot",
-          photoURL: user.photoURL || "",
+          displayName,
+          photoURL: (user && user.photoURL) || "",
           highscore: data.highscore || 0,
           bestWave: data.bestWave || 0,
           totalKills: data.totalKills || 0,
