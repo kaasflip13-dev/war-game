@@ -517,6 +517,43 @@ input {
   border-radius: 8px;
 }
 
+.username-field {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.username-field input {
+  padding: 10px 14px;
+  background: #071426;
+  border: 1px solid var(--line);
+  color: white;
+  border-radius: 8px;
+  width: 180px;
+}
+
+.username-field input:focus {
+  outline: none;
+  border-color: var(--cyan);
+}
+
+@media(max-width: 500px) {
+
+  .setting-row {
+    flex-wrap: wrap;
+  }
+
+  .username-field {
+    width: 100%;
+  }
+
+  .username-field input {
+    flex: 1;
+    width: auto;
+  }
+
+}
+
 .danger-button {
   margin-top: 25px;
   padding: 12px 20px;
