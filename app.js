@@ -4181,11 +4181,20 @@ if (!cloudReady) {
 
   setGateStatus("Cloud controleren...");
 
-  // Finish a signInWithRedirect() flow if we just came back from it.
-  auth.getRedirectResult().catch(err => {
-    console.error("[SpaceBots] Redirect sign-in failed:", err);
-    setGateStatus("Inloggen mislukt: " + err.message, true);
-  });
+  // In case a signInWithRedirect() fallback flow just completed.
+  auth.getRedirectResult()
+    .then(result => {
+      if (result && result.user) {
+        console.log(
+          "[SpaceBots] Redirect sign-in completed for",
+          result.user.displayName
+        );
+      }
+    })
+    .catch(err => {
+      console.error("[SpaceBots] Redirect sign-in failed:", err);
+      setGateStatus("Inloggen mislukt: " + err.message, true);
+    });
 }
 
 
@@ -4217,16 +4226,53 @@ if (googleLoginBtn) {
 
     if (!cloudReady) return;
 
-    setGateStatus("Doorsturen naar Google...");
+    setGateStatus("inloggen...");
     googleLoginBtn.disabled = true;
 
-    // signInWithRedirect works reliably on GitHub Pages, unlike
-    // signInWithPopup, which some browsers/host headers block.
-    auth.signInWithRedirect(provider).catch(err => {
-      console.error("[SpaceBots] Google sign-in failed:", err);
-      setGateStatus("Inloggen mislukt: " + err.message, true);
-      googleLoginBtn.disabled = false;
-    });
+    // Popup first — it gets the result directly and avoids a
+    // storage-partitioning bug that silently breaks redirect
+    // sign-in when the app's domain differs from authDomain.
+    auth.signInWithPopup(provider)
+      .then(result => {
+        console.log(
+          "[SpaceBots] Signed in as",
+          result.user.displayName
+        );
+      })
+      .catch(err => {
+
+        console.error(
+          "[SpaceBots] Popup sign-in failed:",
+          err.code, err.message
+        );
+
+        // If the browser blocked the popup, fall back to redirect.
+        if (
+          err.code === "auth/popup-blocked" ||
+          err.code === "auth/cancelled-popup-request"
+        ) {
+
+          setGateStatus("Pop-up geblokkeerd, doorsturen naar Google...");
+
+          auth.signInWithRedirect(provider).catch(err2 => {
+            console.error("[SpaceBots] Redirect sign-in failed:", err2);
+            setGateStatus("Inloggen mislukt: " + err2.message, true);
+          });
+
+          return;
+        }
+
+        // User closed the popup themselves — not a real error.
+        if (err.code === "auth/popup-closed-by-user") {
+          setGateStatus("Inloggen geannuleerd.");
+          return;
+        }
+
+        setGateStatus("Inloggen mislukt: " + err.message, true);
+      })
+      .finally(() => {
+        googleLoginBtn.disabled = false;
+      });
 
   });
 }
@@ -4243,6 +4289,11 @@ if (logoutBtn) {
 if (cloudReady) {
 
   auth.onAuthStateChanged(user => {
+
+    console.log(
+      "[SpaceBots] onAuthStateChanged:",
+      user ? user.displayName : "signed out"
+    );
 
     updateAccountUI(user);
 
