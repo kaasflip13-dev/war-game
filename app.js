@@ -4098,12 +4098,13 @@ renderMenu();
 ========================================================= */
 
 const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY_HERE",
+  apiKey: "AIzaSyDZQCC-j-YnJ2cCibVhOCZMCC7l0TPIcto",
   authDomain: "spacebots-ultra.firebaseapp.com",
   projectId: "spacebots-ultra",
-  storageBucket: "spacebots-ultra.appspot.com",
+  storageBucket: "spacebots-ultra.firebasestorage.app",
   messagingSenderId: "425940718755",
-  appId: "PASTE_YOUR_APP_ID_HERE"
+  appId: "1:425940718755:web:387da20511829bee665b16",
+  measurementId: "G-TJMWV8R4B4"
 };
 
 
