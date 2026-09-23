@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SpaceBots Ultra</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -505,6 +505,31 @@
 
     <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
+    <!-- TOUCH CONTROLS (movement joystick, right side aims + fires) -->
+
+    <div id="touchJoystick" class="touch-joystick">
+      <div class="joystick-base">
+        <div id="joystickThumb" class="joystick-thumb"></div>
+      </div>
+      <small>BEWEGEN</small>
+    </div>
+
+    <button id="mobilePauseBtn" class="mobile-pause-btn" aria-label="Pauzeer">
+      ⏸
+    </button>
+
+    <!-- ROTATE DEVICE HINT (portrait phones only) -->
+
+    <div id="rotateHint" class="rotate-hint">
+      <div class="rotate-hint-box">
+        <div class="rotate-icon">📱</div>
+        <p>Draai je toestel voor de beste ervaring</p>
+        <button id="rotateHintDismiss" class="secondary-button small-btn">
+          TOCH DOORSPELEN
+        </button>
+      </div>
+    </div>
+
     <!-- HUD -->
 
     <div class="hud">
@@ -578,7 +603,7 @@
         </div>
 
 
-        <div class="weapon-hud">
+        <div id="weaponHud" class="weapon-hud">
 
           <div id="weaponIcon">✊</div>
 
