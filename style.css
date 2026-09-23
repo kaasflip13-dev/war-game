@@ -733,6 +733,130 @@ input {
   width: 100%;
   height: 100%;
   display: block;
+  touch-action: none;
+}
+
+
+/* ================= TOUCH CONTROLS ================= */
+
+.touch-joystick {
+  display: none;
+  position: absolute;
+  left: 26px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.joystick-base {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(3, 10, 20, .55);
+  border: 2px solid rgba(54, 217, 255, .4);
+  touch-action: none;
+}
+
+.joystick-thumb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  background: rgba(54, 217, 255, .35);
+  border: 2px solid var(--cyan);
+  box-shadow: 0 0 15px rgba(54, 217, 255, .4);
+}
+
+.touch-joystick small {
+  color: var(--cyan);
+  letter-spacing: 2px;
+  font-size: 10px;
+  text-shadow: 0 0 8px rgba(0, 0, 0, .8);
+}
+
+.mobile-pause-btn {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 20;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(54, 217, 255, .4);
+  background: rgba(3, 10, 20, .7);
+  color: var(--white);
+  font-size: 16px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+@media(pointer: coarse) {
+
+  .touch-joystick {
+    display: flex;
+  }
+
+  .mobile-pause-btn {
+    display: block;
+  }
+
+}
+
+
+/* ================= ROTATE HINT ================= */
+
+.rotate-hint {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  place-items: center;
+  background: rgba(2, 6, 14, .92);
+}
+
+.rotate-hint-box {
+  width: min(360px, 85%);
+  padding: 35px 25px;
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+
+.rotate-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  animation: rotateHintSpin 2.4s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes rotateHintSpin {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(90deg); }
+}
+
+.rotate-hint-box p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+@media(pointer: coarse) and (orientation: portrait) and (max-width: 900px) {
+
+  .rotate-hint:not(.dismissed) {
+    display: grid;
+  }
+
 }
 
 
@@ -862,6 +986,15 @@ input {
   background: rgba(3, 10, 20, .7);
   border: 1px solid rgba(54, 217, 255, .3);
   border-radius: 10px;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+  transition: .2s;
+}
+
+.weapon-hud:active {
+  border-color: var(--cyan);
+  transform: scale(.97);
 }
 
 #weaponIcon {
@@ -1038,6 +1171,7 @@ input {
 
   .hud-top {
     flex-wrap: wrap;
+    padding-right: 55px;
   }
 
   .brand-small {
@@ -1083,6 +1217,21 @@ input {
 
   .wave-banner b {
     font-size: 70px;
+  }
+
+  .touch-joystick {
+    left: 14px;
+  }
+
+  .joystick-base {
+    width: 96px;
+    height: 96px;
+  }
+
+  .joystick-thumb {
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
   }
 
 }
