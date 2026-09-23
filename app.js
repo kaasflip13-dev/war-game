@@ -3921,8 +3921,28 @@ window.addEventListener(
 
 
 /* =========================================================
-   TOUCH
+   TOUCH (aim + fire — tracks its own finger by id so it
+   doesn't get confused by a second finger on the joystick)
 ========================================================= */
+
+let aimTouchId = null;
+
+function updateAimFromTouch(touch) {
+
+  const rect =
+    canvas.getBoundingClientRect();
+
+  state.mouse.x =
+    (touch.clientX - rect.left) /
+    rect.width *
+    W;
+
+  state.mouse.y =
+    (touch.clientY - rect.top) /
+    rect.height *
+    H;
+}
+
 
 canvas.addEventListener(
   "touchstart",
@@ -3930,24 +3950,15 @@ canvas.addEventListener(
 
     e.preventDefault();
 
+    if (aimTouchId !== null) return;
+
     const touch =
-      e.touches[0];
+      e.changedTouches[0];
 
-    const rect =
-      canvas.getBoundingClientRect();
+    aimTouchId =
+      touch.identifier;
 
-
-    state.mouse.x =
-      (touch.clientX - rect.left) /
-      rect.width *
-      W;
-
-
-    state.mouse.y =
-      (touch.clientY - rect.top) /
-      rect.height *
-      H;
-
+    updateAimFromTouch(touch);
 
     state.mouse.down = true;
 
@@ -3964,35 +3975,222 @@ canvas.addEventListener(
 
     e.preventDefault();
 
-    const touch =
-      e.touches[0];
+    if (aimTouchId === null) return;
 
-    const rect =
-      canvas.getBoundingClientRect();
+    for (const touch of e.changedTouches) {
 
+      if (touch.identifier === aimTouchId) {
+        updateAimFromTouch(touch);
+        break;
+      }
 
-    state.mouse.x =
-      (touch.clientX - rect.left) /
-      rect.width *
-      W;
-
-
-    state.mouse.y =
-      (touch.clientY - rect.top) /
-      rect.height *
-      H;
+    }
 
   },
   { passive: false }
 );
 
 
-canvas.addEventListener(
-  "touchend",
+function endAimTouch(e) {
+
+  if (aimTouchId === null) return;
+
+  for (const touch of e.changedTouches) {
+
+    if (touch.identifier === aimTouchId) {
+      aimTouchId = null;
+      state.mouse.down = false;
+      break;
+    }
+
+  }
+
+}
+
+
+canvas.addEventListener("touchend", endAimTouch);
+canvas.addEventListener("touchcancel", endAimTouch);
+
+
+/* =========================================================
+   TOUCH JOYSTICK (movement — maps to the same state.keys
+   the keyboard uses, so the rest of the game is untouched)
+========================================================= */
+
+const touchJoystick = document.getElementById("touchJoystick");
+const joystickBase = touchJoystick.querySelector(".joystick-base");
+const joystickThumb = document.getElementById("joystickThumb");
+
+let joystickPointerId = null;
+let joystickCenter = { x: 0, y: 0 };
+
+const JOYSTICK_MAX = 45;
+const JOYSTICK_DEADZONE = 12;
+
+
+function setMoveKeys(dx, dy) {
+
+  state.keys["w"] = false;
+  state.keys["a"] = false;
+  state.keys["s"] = false;
+  state.keys["d"] = false;
+
+  if (Math.hypot(dx, dy) < JOYSTICK_DEADZONE) return;
+
+  const deg =
+    Math.atan2(dy, dx) * 180 / Math.PI;
+
+  if (deg > -22.5 && deg <= 22.5) {
+    state.keys["d"] = true;
+  } else if (deg > 22.5 && deg <= 67.5) {
+    state.keys["d"] = true;
+    state.keys["s"] = true;
+  } else if (deg > 67.5 && deg <= 112.5) {
+    state.keys["s"] = true;
+  } else if (deg > 112.5 && deg <= 157.5) {
+    state.keys["a"] = true;
+    state.keys["s"] = true;
+  } else if (deg > 157.5 || deg <= -157.5) {
+    state.keys["a"] = true;
+  } else if (deg > -157.5 && deg <= -112.5) {
+    state.keys["a"] = true;
+    state.keys["w"] = true;
+  } else if (deg > -112.5 && deg <= -67.5) {
+    state.keys["w"] = true;
+  } else {
+    state.keys["w"] = true;
+    state.keys["d"] = true;
+  }
+
+}
+
+
+function moveJoystickThumb(dx, dy) {
+
+  const dist =
+    Math.min(JOYSTICK_MAX, Math.hypot(dx, dy));
+
+  const angle =
+    Math.atan2(dy, dx);
+
+  const x =
+    Math.cos(angle) * dist;
+
+  const y =
+    Math.sin(angle) * dist;
+
+  joystickThumb.style.transform =
+    `translate(${x}px, ${y}px)`;
+}
+
+
+function resetJoystick() {
+
+  joystickPointerId = null;
+
+  joystickThumb.style.transform =
+    "translate(0px, 0px)";
+
+  state.keys["w"] = false;
+  state.keys["a"] = false;
+  state.keys["s"] = false;
+  state.keys["d"] = false;
+}
+
+
+joystickBase.addEventListener("pointerdown", e => {
+
+  e.preventDefault();
+
+  if (joystickPointerId !== null) return;
+
+  joystickPointerId = e.pointerId;
+
+  const rect =
+    joystickBase.getBoundingClientRect();
+
+  joystickCenter = {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2
+  };
+
+  joystickBase.setPointerCapture(e.pointerId);
+
+  moveJoystickThumb(0, 0);
+
+});
+
+
+joystickBase.addEventListener("pointermove", e => {
+
+  if (e.pointerId !== joystickPointerId) return;
+
+  e.preventDefault();
+
+  const dx = e.clientX - joystickCenter.x;
+  const dy = e.clientY - joystickCenter.y;
+
+  moveJoystickThumb(dx, dy);
+  setMoveKeys(dx, dy);
+
+});
+
+
+function releaseJoystick(e) {
+
+  if (e.pointerId !== joystickPointerId) return;
+
+  resetJoystick();
+
+}
+
+
+joystickBase.addEventListener("pointerup", releaseJoystick);
+joystickBase.addEventListener("pointercancel", releaseJoystick);
+joystickBase.addEventListener("lostpointercapture", releaseJoystick);
+
+
+/* =========================================================
+   MOBILE PAUSE BUTTON + TAP-TO-SWITCH WEAPON
+========================================================= */
+
+document.getElementById("mobilePauseBtn").addEventListener(
+  "click",
+  togglePause
+);
+
+
+document.getElementById("weaponHud").addEventListener("click", () => {
+
+  if (!state.running || state.paused) return;
+
+  const unlocked =
+    weapons.filter(w => save.unlockedWeapons.includes(w.id));
+
+  if (unlocked.length < 2) return;
+
+  const currentIndex =
+    unlocked.findIndex(w => w.id === save.selectedWeapon);
+
+  const next =
+    unlocked[(currentIndex + 1) % unlocked.length];
+
+  save.selectedWeapon = next.id;
+  state.weapon = next;
+
+  saveGame();
+
+});
+
+
+/* =========================================================
+   ROTATE-DEVICE HINT
+========================================================= */
+
+document.getElementById("rotateHintDismiss").addEventListener(
+  "click",
   () => {
-
-    state.mouse.down = false;
-
+    document.getElementById("rotateHint").classList.add("dismissed");
   }
 );
 
