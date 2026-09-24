@@ -4160,7 +4160,7 @@ document.getElementById("mobilePauseBtn").addEventListener(
 );
 
 
-document.getElementById("weaponHud").addEventListener("click", () => {
+function switchWeapon(direction) {
 
   if (!state.running || state.paused) return;
 
@@ -4172,14 +4172,27 @@ document.getElementById("weaponHud").addEventListener("click", () => {
   const currentIndex =
     unlocked.findIndex(w => w.id === save.selectedWeapon);
 
-  const next =
-    unlocked[(currentIndex + 1) % unlocked.length];
+  const nextIndex =
+    (currentIndex + direction + unlocked.length) % unlocked.length;
+
+  const next = unlocked[nextIndex];
 
   save.selectedWeapon = next.id;
   state.weapon = next;
 
   saveGame();
+}
 
+
+document.getElementById("weaponPrevBtn").addEventListener("click", e => {
+  e.stopPropagation();
+  switchWeapon(-1);
+});
+
+
+document.getElementById("weaponNextBtn").addEventListener("click", e => {
+  e.stopPropagation();
+  switchWeapon(1);
 });
 
 
