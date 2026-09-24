@@ -487,6 +487,27 @@ input {
 }
 
 
+/* ================= CREDITS PANEL ================= */
+
+.credits-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.credits-role {
+  color: var(--orange) !important;
+  font-weight: bold;
+  margin-bottom: 8px !important;
+}
+
+@media(max-width: 700px) {
+
+  .credits-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
 /* ================= SETTINGS ================= */
 
 .setting-row {
@@ -726,12 +747,24 @@ input {
   position: fixed;
   inset: 0;
   display: none;
+  overflow: hidden;
   background: black;
 }
 
 #gameCanvas {
+  position: absolute;
+  inset: 0;
+  margin: auto;
   width: 100%;
   height: 100%;
+
+  /* Keep the true 1280x720 (16:9) shape instead of stretching
+     to fill whatever aspect ratio the screen happens to be —
+     this is what caused the "flat"/squashed look. Whichever
+     limit is tighter wins, and the rest becomes black bars. */
+  max-width: 177.78vh;
+  max-height: 56.25vw;
+
   display: block;
   touch-action: none;
 }
@@ -986,15 +1019,32 @@ input {
   background: rgba(3, 10, 20, .7);
   border: 1px solid rgba(54, 217, 255, .3);
   border-radius: 10px;
-  pointer-events: auto;
-  cursor: pointer;
-  user-select: none;
-  transition: .2s;
 }
 
-.weapon-hud:active {
-  border-color: var(--cyan);
-  transform: scale(.97);
+.weapon-arrow {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(54, 217, 255, .4);
+  border-radius: 50%;
+  background: rgba(54, 217, 255, .1);
+  color: var(--cyan);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  transition: .15s;
+}
+
+.weapon-arrow:hover {
+  background: rgba(54, 217, 255, .25);
+}
+
+.weapon-arrow:active {
+  transform: scale(.9);
 }
 
 #weaponIcon {
@@ -1232,6 +1282,74 @@ input {
     width: 44px;
     height: 44px;
     margin: -22px 0 0 -22px;
+  }
+
+}
+
+
+/* ================= TOUCH-OPTIMIZED HUD ================= */
+/* Uses (pointer: coarse) instead of a width breakpoint on
+   purpose: a phone in LANDSCAPE (the orientation we ask for)
+   is often wider than 800px, so a width-only breakpoint left
+   it showing the full desktop-sized HUD — which is what made
+   the bars/weapon box/minimap look oversized on a phone. */
+
+@media(pointer: coarse) {
+
+  .hud-top {
+    gap: 6px;
+  }
+
+  .score-box,
+  .wave-box,
+  .combo-box,
+  .time-box,
+  .kills-box {
+    min-width: 56px;
+    padding: 5px 8px;
+  }
+
+  .hud-bottom {
+    justify-content: flex-end;
+    gap: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .bars {
+    width: 150px;
+    padding: 7px;
+  }
+
+  .bar-row {
+    grid-template-columns: 38px 1fr 22px;
+    font-size: 9px;
+    margin: 3px 0;
+    gap: 5px;
+  }
+
+  .weapon-hud {
+    min-width: 0;
+    width: auto;
+    padding: 7px 8px;
+    gap: 6px;
+  }
+
+  #weaponIcon {
+    font-size: 20px;
+  }
+
+  #weaponStatus {
+    display: none;
+  }
+
+}
+
+@media(pointer: coarse) and (max-width: 1024px) {
+
+  #miniMap {
+    display: none;
   }
 
 }
