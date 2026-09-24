@@ -164,6 +164,12 @@
         <small>Spel- en ranglijstregels</small>
       </button>
 
+      <button class="menu-card" data-panel="creditsPanel">
+        <span>🎖️</span>
+        <b>CREDITS</b>
+        <small>Wie maakte dit spel</small>
+      </button>
+
     </div>
 
   </section>
@@ -287,14 +293,6 @@
         </div>
 
         <div>
-          <b>🧑‍🚀 Eén account</b>
-          <span>
-            Speel met je eigen Google-account. Deel je voortgang niet en
-            gebruik geen accounts van anderen.
-          </span>
-        </div>
-
-        <div>
           <b>📡 Ranglijst</b>
           <span>
             Als je inlogt worden je naam, profielfoto en beste score
@@ -333,6 +331,41 @@
         Deze regels houden SpaceBots Ultra leuk en eerlijk voor iedereen.
         Speel slim, klim de ranglijst op, en versla de bosses! 🤖
       </p>
+
+    </div>
+  </section>
+
+
+  <!-- ================= CREDITS ================= -->
+
+  <section id="creditsPanel" class="subscreen">
+    <div class="panel-box">
+
+      <button class="backBtn">← TERUG</button>
+
+      <h2>🎖️ CREDITS &amp; ATTRIBUTION</h2>
+      <p>De mensen achter SpaceBots Ultra.</p>
+
+      <div class="cards credits-grid">
+
+        <div class="card">
+          <div class="card-icon">👑</div>
+          <h3>Ivan Aubel</h3>
+          <p class="credits-role">60% eigenaar — SpaceBots</p>
+          <p>Heeft het project aangemaakt.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🛠️</div>
+          <h3>Sven Hildering</h3>
+          <p class="credits-role">40% eigenaar — SpaceBots</p>
+          <p>
+            Heeft de database, skins, het gebruikerssysteem, het
+            opslaan, "how to play" en de regels gemaakt.
+          </p>
+        </div>
+
+      </div>
 
     </div>
   </section>
@@ -605,12 +638,16 @@
 
         <div id="weaponHud" class="weapon-hud">
 
+          <button id="weaponPrevBtn" class="weapon-arrow" aria-label="Vorig wapen">‹</button>
+
           <div id="weaponIcon">✊</div>
 
           <div>
             <small>WEAPON</small>
             <b id="weaponName">fist</b>
           </div>
+
+          <button id="weaponNextBtn" class="weapon-arrow" aria-label="Volgend wapen">›</button>
 
           <span id="weaponStatus">READY</span>
 
