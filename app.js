@@ -14,7 +14,7 @@ const miniCtx = miniMap.getContext("2d");
 const W = 1280;
 const H = 720;
 const MAX_WAVE = 10;
-const MAX_UPGRADE_LEVEL = 15;
+const MAX_UPGRADE_LEVEL = 30;
 
 
 /* =========================================================
@@ -705,6 +705,7 @@ function renderUpgrades() {
     const level = save.upgrades[upgrade.id];
 
     const maxed = level >= MAX_UPGRADE_LEVEL;
+    const overclocked = level > MAX_UPGRADE_LEVEL;
 
     const price = 75 + level * 75;
 
@@ -720,7 +721,11 @@ function renderUpgrades() {
       <p>${upgrade.description}</p>
 
       <p>
-        Level: <b>${level} / ${MAX_UPGRADE_LEVEL}</b>
+        Level: <b>${
+          overclocked
+            ? level + " ⚡ OVERCLOCKED"
+            : level + " / " + MAX_UPGRADE_LEVEL
+        }</b>
       </p>
 
       <button ${maxed ? "disabled" : ""}>
