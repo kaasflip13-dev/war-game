@@ -14,6 +14,7 @@ const miniCtx = miniMap.getContext("2d");
 const W = 1280;
 const H = 720;
 const MAX_WAVE = 10;
+const MAX_UPGRADE_LEVEL = 15;
 
 
 /* =========================================================
@@ -90,35 +91,35 @@ const maps = [
     name: "NEON GRID",
     icon: "🌌",
     unlock: 0,
-    description: "Een futuristische stad vol energie."
+    description: "A futuristic city full of energy."
   },
   {
     id: "moon",
     name: "CRIMSON MOON",
     icon: "🌑",
     unlock: 3,
-    description: "Een donkere maan met gevaarlijke robots."
+    description: "A dark moon with dangerous robots."
   },
   {
     id: "temple",
     name: "VOID TEMPLE",
     icon: "🏛️",
     unlock: 5,
-    description: "Een mysterieuze tempel in de ruimte."
+    description: "A mysterious temple in space."
   },
   {
     id: "toxic",
     name: "TOXIC PLANET",
     icon: "☢️",
     unlock: 7,
-    description: "Een groene planeet met sterke machines."
+    description: "A green planet with powerful machines."
   },
   {
     id: "forge",
     name: "STAR FORGE",
     icon: "⭐",
     unlock: 10,
-    description: "De laatste arena."
+    description: "The final arena."
   }
 ];
 
@@ -326,37 +327,37 @@ const upgrades = [
     id: "damage",
     name: "CORE DAMAGE",
     icon: "⚔️",
-    description: "+10% wapenschade"
+    description: "+10% weapon damage"
   },
   {
     id: "health",
     name: "ARMOR",
     icon: "❤️",
-    description: "+20 maximale HP"
+    description: "+20 max HP"
   },
   {
     id: "shield",
     name: "SHIELD",
     icon: "🛡️",
-    description: "+20 maximale shield"
+    description: "+20 max shield"
   },
   {
     id: "energy",
     name: "ENERGY",
     icon: "⚡",
-    description: "+20 maximale energie"
+    description: "+20 max energy"
   },
   {
     id: "speed",
-    name: "roket sPeed",
+    name: "ROCKET SPEED",
     icon: "🚀",
-    description: "+8% snelheid"
+    description: "+8% speed"
   },
   {
     id: "cooldown",
     name: "RAPID CORE",
     icon: "🔥",
-    description: "Sneller schieten"
+    description: "Faster firing"
   }
 ];
 
@@ -366,61 +367,61 @@ const achievementData = [
     id: "first",
     name: "FIRST CONTACT",
     icon: "🤖",
-    description: "Versla je eerste robot."
+    description: "Defeat your first robot."
   },
   {
     id: "hunter",
     name: "ROBOT HUNTER",
     icon: "🎯",
-    description: "Versla 50 robots."
+    description: "Defeat 50 robots."
   },
   {
     id: "combo",
     name: "COMBO MASTER",
     icon: "🔥",
-    description: "Bereik combo x10."
+    description: "Reach combo x10."
   },
   {
     id: "boss",
     name: "BOSS BREAKER",
     icon: "👑",
-    description: "Versla een boss."
+    description: "Defeat a boss."
   },
   {
     id: "survivor",
     name: "SURVIVOR",
     icon: "❤️",
-    description: "Bereik wave 5."
+    description: "Reach wave 5."
   },
   {
     id: "ultra",
     name: "ULTRA PILOT",
     icon: "⭐",
-    description: "Bereik wave 10."
+    description: "Reach wave 10."
   },
   {
     id: "energy",
     name: "ENERGY TYCOON",
     icon: "⚡",
-    description: "Verzamel 20 pickups."
+    description: "Collect 20 pickups."
   },
   {
     id: "arsenal",
     name: "FULL ARSENAL",
     icon: "🔫",
-    description: "Ontgrendel alle wapens."
+    description: "Unlock all weapons."
   },
   {
     id: "colorful",
     name: "SKIN COLLECTOR",
     icon: "🎨",
-    description: "Ontgrendel alle skins."
+    description: "Unlock all skins."
   },
   {
     id: "explorer",
     name: "EXPLORER",
     icon: "🌌",
-    description: "Speel op alle maps."
+    description: "Play on all maps."
   }
 ];
 
@@ -646,9 +647,9 @@ function renderWeapons() {
         ${
           unlocked
             ? selected
-              ? "GESELECTEERD"
-              : "SELECTEER"
-            : "KOOP - " + weapon.cost + " CREDITS"
+              ? "SELECTED"
+              : "SELECT"
+            : "BUY - " + weapon.cost + " CREDITS"
         }
       </button>
     `;
@@ -703,11 +704,13 @@ function renderUpgrades() {
 
     const level = save.upgrades[upgrade.id];
 
+    const maxed = level >= MAX_UPGRADE_LEVEL;
+
     const price = 75 + level * 75;
 
     const card = document.createElement("div");
 
-    card.className = "card";
+    card.className = "card" + (maxed ? " selected" : "");
 
     card.innerHTML = `
       <div class="card-icon">${upgrade.icon}</div>
@@ -717,15 +720,17 @@ function renderUpgrades() {
       <p>${upgrade.description}</p>
 
       <p>
-        Level: <b>${level}</b>
+        Level: <b>${level} / ${MAX_UPGRADE_LEVEL}</b>
       </p>
 
-      <button>
-        UPGRADE - ${price} C
+      <button ${maxed ? "disabled" : ""}>
+        ${maxed ? "MAX LEVEL" : "UPGRADE - " + price + " C"}
       </button>
     `;
 
     card.querySelector("button").addEventListener("click", () => {
+
+      if (maxed) return;
 
       if (save.credits >= price) {
 
@@ -785,9 +790,9 @@ function renderMaps() {
         ${
           unlocked
             ? selected
-              ? "GESELECTEERD"
-              : "SELECTEER"
-            : "VERGRENDELD"
+              ? "SELECTED"
+              : "SELECT"
+            : "LOCKED"
         }
       </button>
     `;
@@ -850,15 +855,15 @@ function renderSkins() {
 
       <h3>${skin.name}</h3>
 
-      <p>Robotkleur voor jouw skin.</p>
+      <p>Robot color for your skin.</p>
 
       <button>
         ${
           unlocked
             ? selected
-              ? "GESELECTEERD"
-              : "SELECTEER"
-            : "KOOP - " + skin.cost + " CREDITS"
+              ? "SELECTED"
+              : "SELECT"
+            : "BUY - " + skin.cost + " CREDITS"
         }
       </button>
     `;
@@ -1047,7 +1052,7 @@ document.getElementById("usernameInput").addEventListener("keydown", e => {
 
 document.getElementById("resetSaveBtn").addEventListener("click", () => {
 
-  if (!confirm("Alles resetten?")) return;
+  if (!confirm("Reset everything?")) return;
 
   save = structuredClone(defaultSave);
 
@@ -1490,8 +1495,11 @@ function shoot() {
     (1 + save.upgrades.damage * .10);
 
   const cooldown =
-    weapon.fireRate *
-    Math.pow(.92, save.upgrades.cooldown);
+    Math.max(
+      40,
+      weapon.fireRate *
+      Math.pow(.92, save.upgrades.cooldown)
+    );
 
   state.shotTimer = cooldown;
 
@@ -4418,8 +4426,8 @@ function setGateStatus(text, isError) {
 if (!cloudReady) {
 
   setGateStatus(
-    "Cloud-opslag is nog niet ingesteld door de ontwikkelaar " +
-    "(firebaseConfig in app.js). Het spel kan nog niet gestart worden.",
+    "Cloud storage has not been set up by the developer yet " +
+    "(firebaseConfig in app.js). The game cannot be started yet.",
     true
   );
 
@@ -4427,7 +4435,7 @@ if (!cloudReady) {
 
 } else {
 
-  setGateStatus("Cloud controleren...");
+  setGateStatus("Checking cloud...");
 
   // In case a signInWithRedirect() fallback flow just completed.
   auth.getRedirectResult()
@@ -4441,7 +4449,7 @@ if (!cloudReady) {
     })
     .catch(err => {
       console.error("[SpaceBots] Redirect sign-in failed:", err);
-      setGateStatus("Inloggen mislukt: " + err.message, true);
+      setGateStatus("Login failed: " + err.message, true);
     });
 }
 
@@ -4453,7 +4461,7 @@ function renderHeaderName() {
   if (!userName) return;
 
   const user = auth && auth.currentUser;
-  const name = save.customUsername || (user && user.displayName) || "Piloot";
+  const name = save.customUsername || (user && user.displayName) || "Pilot";
 
   userName.textContent = name;
 }
@@ -4473,7 +4481,7 @@ function updateAccountUI(user) {
 
     showScreen("authGateScreen");
 
-    setGateStatus("Log in om te spelen.");
+    setGateStatus("Log in to play.");
 
     if (leaderboardLoggedOut) leaderboardLoggedOut.style.display = "block";
   }
@@ -4486,7 +4494,7 @@ if (googleLoginBtn) {
 
     if (!cloudReady) return;
 
-    setGateStatus("inloggen...");
+    setGateStatus("logging in...");
     googleLoginBtn.disabled = true;
 
     // Popup first — it gets the result directly and avoids a
@@ -4512,11 +4520,11 @@ if (googleLoginBtn) {
           err.code === "auth/cancelled-popup-request"
         ) {
 
-          setGateStatus("Pop-up geblokkeerd, doorsturen naar Google...");
+          setGateStatus("Pop-up blocked, redirecting to Google...");
 
           auth.signInWithRedirect(provider).catch(err2 => {
             console.error("[SpaceBots] Redirect sign-in failed:", err2);
-            setGateStatus("Inloggen mislukt: " + err2.message, true);
+            setGateStatus("Login failed: " + err2.message, true);
           });
 
           return;
@@ -4524,11 +4532,11 @@ if (googleLoginBtn) {
 
         // User closed the popup themselves — not a real error.
         if (err.code === "auth/popup-closed-by-user") {
-          setGateStatus("Inloggen geannuleerd.");
+          setGateStatus("Login cancelled.");
           return;
         }
 
-        setGateStatus("Inloggen mislukt: " + err.message, true);
+        setGateStatus("Login failed: " + err.message, true);
       })
       .finally(() => {
         googleLoginBtn.disabled = false;
@@ -4569,7 +4577,7 @@ if (cloudReady) {
 
 function pullAndMergeSave(user) {
 
-  setCloudStatus("synchroniseren...");
+  setCloudStatus("syncing...");
 
   db.collection("users").doc(user.uid).get()
     .then(doc => {
@@ -4681,7 +4689,7 @@ function pushSaveToCloud(saveSnapshot) {
 
   const user = auth.currentUser;
 
-  setCloudStatus("opslaan...");
+  setCloudStatus("saving...");
 
   clearTimeout(pushTimer);
 
@@ -4690,7 +4698,7 @@ function pushSaveToCloud(saveSnapshot) {
     const data = structuredClone(saveSnapshot);
 
     const user = auth.currentUser;
-    const displayName = data.customUsername || (user && user.displayName) || "Piloot";
+    const displayName = data.customUsername || (user && user.displayName) || "Pilot";
 
     const userPayload = {
       ...data,
@@ -4725,7 +4733,7 @@ function pushSaveToCloud(saveSnapshot) {
       })
       .catch(err => {
         console.error("[SpaceBots] Cloud save failed:", err);
-        setCloudStatus("⚠ opslaan mislukt");
+        setCloudStatus("⚠ save failed");
       });
 
   }, 800);
@@ -4741,13 +4749,13 @@ function loadLeaderboard() {
   if (!cloudReady) {
     leaderboardStatus.style.display = "block";
     leaderboardStatus.textContent =
-      "Ranglijst is niet beschikbaar (cloud niet geconfigureerd).";
+      "Leaderboard is not available (cloud not configured).";
     leaderboardList.innerHTML = "";
     return;
   }
 
   leaderboardStatus.style.display = "block";
-  leaderboardStatus.textContent = "Ranglijst wordt geladen...";
+  leaderboardStatus.textContent = "Loading leaderboard...";
   leaderboardList.innerHTML = "";
 
   db.collection("leaderboard")
@@ -4761,7 +4769,7 @@ function loadLeaderboard() {
       if (snap.empty) {
         leaderboardStatus.style.display = "block";
         leaderboardStatus.textContent =
-          "Nog niemand op de ranglijst. Wees de eerste!";
+          "No one on the leaderboard yet. Be the first!";
         return;
       }
 
@@ -4779,7 +4787,7 @@ function loadLeaderboard() {
         row.innerHTML = `
           <span class="lb-rank">#${rank}</span>
           <img class="lb-photo" src="${d.photoURL || ""}" alt="">
-          <span class="lb-name">${escapeHtml(d.displayName || "Piloot")}</span>
+          <span class="lb-name">${escapeHtml(d.displayName || "Pilot")}</span>
           <span class="lb-stat"><small>SCORE</small>${d.highscore || 0}</span>
           <span class="lb-stat"><small>WAVE</small>${d.bestWave || 0}</span>
           <span class="lb-stat"><small>KILLS</small>${d.totalKills || 0}</span>
@@ -4796,7 +4804,7 @@ function loadLeaderboard() {
 
       leaderboardStatus.style.display = "block";
       leaderboardStatus.textContent =
-        "Kon ranglijst niet laden. Probeer het later opnieuw.";
+        "Could not load leaderboard. Please try again later.";
 
     });
 }
