@@ -1561,7 +1561,7 @@ function shoot() {
       radius:
         weapon.id === "void" ? 7 : 4,
 
-      life: 33339,
+      life: 1339,
 
       color:
         weapon.id === "plasma"
