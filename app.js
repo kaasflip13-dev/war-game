@@ -1561,7 +1561,7 @@ function shoot() {
       radius:
         weapon.id === "void" ? 7 : 4,
 
-      life: 339,
+      life: 33339,
 
       color:
         weapon.id === "plasma"
@@ -1620,7 +1620,7 @@ function enemyShoot(robot) {
 
     radius: 5,
 
-    life: 1100,
+    life: 1200,
 
     color: robot.color
 
