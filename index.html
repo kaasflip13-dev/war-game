@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -22,9 +22,9 @@
       <p class="tag">ULTRA EDITION</p>
 
       <p class="auth-gate-text">
-        Log in met Google om te spelen. Je voortgang wordt alleen in
-        de cloud opgeslagen, dus je speelt op elk apparaat met
-        dezelfde save.
+        Sign in with Google to play. Your progress is saved only in
+        the cloud, so you can play on any device with the
+        same save.
       </p>
 
       <button id="googleLoginBtn" class="google-btn">
@@ -34,11 +34,11 @@
           <path fill="#FBBC05" d="M3.97 10.71A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.29-1.71V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.34z"/>
           <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.95l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58z"/>
         </svg>
-        Inloggen met Google
+        Sign in with Google
       </button>
 
       <p id="authGateStatus" class="auth-gate-status">
-        Cloud controleren...
+        Checking cloud...
       </p>
 
     </div>
@@ -64,7 +64,7 @@
           <img id="userPhoto" src="" alt="">
           <span id="userName"></span>
           <span id="cloudStatus" class="cloud-status">☁ synced</span>
-          <button id="logoutBtn" class="secondary-button small-btn">UITLOGGEN</button>
+          <button id="logoutBtn" class="secondary-button small-btn">LOG OUT</button>
         </div>
 
       </div>
@@ -73,10 +73,10 @@
     <div class="hero">
       <div class="hero-text">
         <span class="tag">ULTRA EDITION</span>
-        <h2>VECHT TEGEN DE BOTS</h2>
+        <h2>FIGHT THE BOTS</h2>
         <p>
-          Overleef eindeloze waves, versla gigantische bosses,
-          koop nieuwe wapens en verbeter je bot.
+          Survive endless waves, defeat giant bosses,
+          buy new weapons and upgrade your bot.
         </p>
 
         <button id="startBtn" class="main-button">
@@ -99,7 +99,7 @@
         </div>
         <div>
           <strong>6</strong>
-          <span>WAPENS</span>
+          <span>WEAPONS</span>
         </div>
         <div>
           <strong>5</strong>
@@ -112,62 +112,62 @@
 
       <button class="menu-card" data-panel="weaponsPanel">
         <span>🔫</span>
-        <b>WAPENKAMER</b>
-        <small>Kies je wapen</small>
+        <b>ARMORY</b>
+        <small>Choose your weapon</small>
       </button>
 
       <button class="menu-card" data-panel="upgradePanel">
         <span>⚡</span>
         <b>UPGRADES</b>
-        <small>Maak je robot sterker</small>
+        <small>Make your robot stronger</small>
       </button>
 
       <button class="menu-card" data-panel="mapPanel">
         <span>🌌</span>
-        <b>KAARTEN</b>
-        <small>Kies een planeet</small>
+        <b>MAPS</b>
+        <small>Choose a planet</small>
       </button>
 
       <button class="menu-card" data-panel="skinsPanel">
         <span>🎨</span>
         <b>SKINS</b>
-        <small>Verander je robot</small>
+        <small>Customize your robot</small>
       </button>
 
       <button class="menu-card" data-panel="achievementsPanel">
         <span>🏆</span>
         <b>ACHIEVEMENTS</b>
-        <small>Bekijk je prestaties</small>
+        <small>View your achievements</small>
       </button>
 
       <button class="menu-card" data-panel="leaderboardPanel">
         <span>📡</span>
-        <b>RANGLIJST</b>
-        <small>Top piloten wereldwijd</small>
+        <b>LEADERBOARD</b>
+        <small>Top pilots worldwide</small>
       </button>
 
       <button class="menu-card" data-panel="settingsPanel">
         <span>⚙️</span>
-        <b>INSTELLINGEN</b>
-        <small>Pas het spel aan</small>
+        <b>SETTINGS</b>
+        <small>Adjust the game</small>
       </button>
 
       <button class="menu-card" data-panel="helpPanel">
         <span>❓</span>
         <b>HOW TO PLAY</b>
-        <small>Besturing</small>
+        <small>Controls</small>
       </button>
 
       <button class="menu-card" data-panel="rulesPanel">
         <span>📜</span>
-        <b>REGELS</b>
-        <small>Spel- en ranglijstregels</small>
+        <b>RULES</b>
+        <small>Game and leaderboard rules</small>
       </button>
 
       <button class="menu-card" data-panel="creditsPanel">
         <span>🎖️</span>
         <b>CREDITS</b>
-        <small>Wie maakte dit spel</small>
+        <small>Who made this game</small>
       </button>
 
     </div>
@@ -180,10 +180,10 @@
   <section id="weaponsPanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
-      <h2>🔫 WAPENKAMER</h2>
-      <p>Kies je favoriete wapen.</p>
+      <h2>🔫 ARMORY</h2>
+      <p>Choose your favorite weapon.</p>
 
       <div id="weaponCards" class="cards"></div>
 
@@ -196,7 +196,7 @@
   <section id="upgradePanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
       <h2>⚡ UPGRADES</h2>
 
@@ -216,9 +216,9 @@
   <section id="mapPanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
-      <h2>🌌 KAARTEN</h2>
+      <h2>🌌 MAPS</h2>
 
       <div id="mapCards" class="cards"></div>
 
@@ -231,10 +231,10 @@
   <section id="skinsPanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
       <h2>🎨 SKINS</h2>
-      <p>Verander de kleur van je robot.</p>
+      <p>Change your robot's color.</p>
 
       <div class="credits">
         Credits:
@@ -252,18 +252,18 @@
   <section id="leaderboardPanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
-      <h2>📡 RANGLIJST</h2>
-      <p>De beste piloten wereldwijd, live vanuit de cloud.</p>
+      <h2>📡 LEADERBOARD</h2>
+      <p>The best pilots worldwide, live from the cloud.</p>
 
       <div id="leaderboardLoggedOut" class="help-text" style="display:none;">
-        Log in met Google om op de ranglijst te verschijnen en de live
-        ranglijst te bekijken.
+        Log in with Google to appear on the leaderboard and view the
+        live leaderboard.
       </div>
 
       <div id="leaderboardStatus" class="help-text">
-        Ranglijst wordt geladen...
+        Loading leaderboard...
       </div>
 
       <div id="leaderboardList" class="leaderboard-list"></div>
@@ -277,59 +277,58 @@
   <section id="rulesPanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
-      <h2>📜 REGELS</h2>
+      <h2>📜 RULES</h2>
       <p>Speel eerlijk, heb plezier, en respecteer andere piloten.</p>
 
       <div class="controls">
 
         <div>
-          <b>🎯 Eerlijk spel</b>
+          <b>🎯 Fair Play</b>
           <span>
-            Gebruik geen cheats, macro's, bots of exploits om je score,
-            credits of ranglijstpositie kunstmatig te verhogen.
+            Don't use cheats, macros, bots or exploits to artificially
+            boost your score, credits or leaderboard position.
           </span>
         </div>
 
         <div>
-          <b>📡 Ranglijst</b>
+          <b>📡 Leaderboard</b>
           <span>
-            Als je inlogt worden je naam, profielfoto en beste score
-            publiek zichtbaar op de ranglijst voor alle spelers.
+            When you log in, your name, profile photo and best score
+            become publicly visible on the leaderboard for all players.
           </span>
         </div>
 
         <div>
-          <b>💾 Cloud-save</b>
+          <b>💾 Cloud Save</b>
           <span>
-            Je voortgang wordt automatisch opgeslagen in de cloud zodra
-            je bent ingelogd, zodat je op elk apparaat verder kan spelen.
+            Your progress is automatically saved to the cloud once
+            you're logged in, so you can keep playing on any device.
           </span>
         </div>
 
         <div>
           <b>🙊 Respect</b>
           <span>
-            Kies geen aanstootgevende of nepnamen. Namen die als
-            beledigend worden gezien kunnen van de ranglijst verwijderd
-            worden.
+            Don't choose offensive or fake names. Names considered
+            offensive may be removed from the leaderboard.
           </span>
         </div>
 
         <div>
           <b>🔒 Privacy</b>
           <span>
-            Log uit op gedeelde apparaten. Je gameplay-statistieken zijn
-            niet gevoelig, maar je account blijft van jou.
+            Log out on shared devices. Your gameplay stats aren't
+            sensitive, but your account is still yours.
           </span>
         </div>
 
       </div>
 
       <p class="help-text">
-        Deze regels houden SpaceBots Ultra leuk en eerlijk voor iedereen.
-        Speel slim, klim de ranglijst op, en versla de bosses! 🤖
+        These rules keep SpaceBots Ultra fun and fair for everyone.
+        Play smart, climb the leaderboard, and defeat the bosses! 🤖
       </p>
 
     </div>
@@ -341,27 +340,27 @@
   <section id="creditsPanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
       <h2>🎖️ CREDITS &amp; ATTRIBUTION</h2>
-      <p>De mensen achter SpaceBots Ultra.</p>
+      <p>The people behind SpaceBots Ultra.</p>
 
       <div class="cards credits-grid">
 
         <div class="card">
           <div class="card-icon">👑</div>
           <h3>Ivan Aubel</h3>
-          <p class="credits-role">60% eigenaar — SpaceBots</p>
-          <p>Heeft het project aangemaakt.</p>
+          <p class="credits-role">60% owner — SpaceBots</p>
+          <p>Created the project.</p>
         </div>
 
         <div class="card">
           <div class="card-icon">🛠️</div>
           <h3>Sven Hildering</h3>
-          <p class="credits-role">40% eigenaar — SpaceBots</p>
+          <p class="credits-role">40% owner — SpaceBots</p>
           <p>
-            Heeft de database, skins, het gebruikerssysteem, het
-            opslaan, "how to play" en de regels gemaakt.
+            Built the database, skins, user system, saving,
+            how-to-play and rules.
           </p>
         </div>
 
@@ -376,7 +375,7 @@
   <section id="achievementsPanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
       <h2>🏆 ACHIEVEMENTS</h2>
 
@@ -408,14 +407,14 @@
   <section id="settingsPanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
-      <h2>⚙️ INSTELLINGEN</h2>
+      <h2>⚙️ SETTINGS</h2>
 
       <div class="setting-row">
         <div>
-          <b>Gebruikersnaam</b>
-          <small>Deze naam is zichtbaar op de ranglijst</small>
+          <b>Username</b>
+          <small>This name is visible on the leaderboard</small>
         </div>
 
         <div class="username-field">
@@ -423,18 +422,18 @@
             type="text"
             id="usernameInput"
             maxlength="24"
-            placeholder="Piloot"
+            placeholder="Pilot"
           >
           <button id="usernameSaveBtn" class="secondary-button small-btn">
-            OPSLAAN
+            SAVE
           </button>
         </div>
       </div>
 
       <div class="setting-row">
         <div>
-          <b>Geluid</b>
-          <small>Schiet- en explosiegeluiden</small>
+          <b>Sound</b>
+          <small>Shooting and explosion sounds</small>
         </div>
         <input type="checkbox" id="soundToggle" checked>
       </div>
@@ -442,7 +441,7 @@
       <div class="setting-row">
         <div>
           <b>Particles</b>
-          <small>Explosies en energie-effecten</small>
+          <small>Explosions and energy effects</small>
         </div>
         <input type="checkbox" id="particlesToggle" checked>
       </div>
@@ -450,7 +449,7 @@
       <div class="setting-row">
         <div>
           <b>Screen Shake</b>
-          <small>Camera-effect bij zware hits</small>
+          <small>Camera effect on heavy hits</small>
         </div>
         <input type="checkbox" id="shakeToggle" checked>
       </div>
@@ -458,15 +457,15 @@
       <div class="setting-row">
         <div>
           <b>Auto Fire</b>
-          <small>Blijf schieten wanneer je muisknop ingedrukt is</small>
+          <small>Keep firing while your mouse button is held down</small>
         </div>
         <input type="checkbox" id="autoFireToggle">
       </div>
 
       <div class="setting-row">
         <div>
-          <b>Moeilijkheid</b>
-          <small>Pas de vijanden aan</small>
+          <b>Difficulty</b>
+          <small>Adjust the enemies</small>
         </div>
 
         <select id="difficultySelect">
@@ -489,7 +488,7 @@
   <section id="helpPanel" class="subscreen">
     <div class="panel-box">
 
-      <button class="backBtn">← TERUG</button>
+      <button class="backBtn">← BACK</button>
 
       <h2>❓ HOW TO PLAY</h2>
 
@@ -497,35 +496,35 @@
 
         <div>
           <b>W A S D</b>
-          <span>Bewegen</span>
+          <span>Move</span>
         </div>
 
         <div>
-          <b>MUISKLIK</b>
-          <span>Schieten</span>
+          <b>MOUSE CLICK</b>
+          <span>Shoot</span>
         </div>
 
         <div>
           <b>1 - 6</b>
-          <span>Wapen kiezen</span>
+          <span>Choose weapon</span>
         </div>
 
         <div>
           <b>P</b>
-          <span>Pauzeren</span>
+          <span>Pause</span>
         </div>
 
         <div>
           <b>ESC</b>
-          <span>Terug naar menu</span>
+          <span>Back to menu</span>
         </div>
 
       </div>
 
       <p class="help-text">
-        Versla robots, pak energie op, overleef waves en versla
-        de grote bosses. Er is geen bloed; alle schade bestaat uit
-        energie- en explosie-effecten.
+        Defeat robots, pick up energy, survive waves and defeat
+        the big bosses. There's no blood; all damage consists of
+        energy and explosion effects.
       </p>
 
     </div>
@@ -544,10 +543,10 @@
       <div class="joystick-base">
         <div id="joystickThumb" class="joystick-thumb"></div>
       </div>
-      <small>BEWEGEN</small>
+      <small>MOVE</small>
     </div>
 
-    <button id="mobilePauseBtn" class="mobile-pause-btn" aria-label="Pauzeer">
+    <button id="mobilePauseBtn" class="mobile-pause-btn" aria-label="Pause">
       ⏸
     </button>
 
@@ -556,9 +555,9 @@
     <div id="rotateHint" class="rotate-hint">
       <div class="rotate-hint-box">
         <div class="rotate-icon">📱</div>
-        <p>Draai je toestel voor de beste ervaring</p>
+        <p>Rotate your device for the best experience</p>
         <button id="rotateHintDismiss" class="secondary-button small-btn">
-          TOCH DOORSPELEN
+          PLAY ANYWAY
         </button>
       </div>
     </div>
@@ -638,7 +637,7 @@
 
         <div id="weaponHud" class="weapon-hud">
 
-          <button id="weaponPrevBtn" class="weapon-arrow" aria-label="Vorig wapen">‹</button>
+          <button id="weaponPrevBtn" class="weapon-arrow" aria-label="Previous weapon">‹</button>
 
           <div id="weaponIcon">✊</div>
 
@@ -647,7 +646,7 @@
             <b id="weaponName">fist</b>
           </div>
 
-          <button id="weaponNextBtn" class="weapon-arrow" aria-label="Volgend wapen">›</button>
+          <button id="weaponNextBtn" class="weapon-arrow" aria-label="Next weapon">›</button>
 
           <span id="weaponStatus">READY</span>
 
@@ -705,10 +704,10 @@
       <div class="overlay-box">
 
         <h2>PAUSED</h2>
-        <p>Druk op P om verder te gaan.</p>
+        <p>Press P to continue.</p>
 
         <button id="resumeBtn" class="main-button">
-          ▶ VERDER
+          ▶ RESUME
         </button>
 
         <button id="pauseMenuBtn" class="secondary-button">
@@ -728,7 +727,7 @@
 
         <h2>GAME OVER</h2>
 
-        <p>Je robot is vernietigd.</p>
+        <p>Your robot has been destroyed.</p>
 
         <div class="result-grid">
 
@@ -750,11 +749,11 @@
         </div>
 
         <p id="newRecordText" class="record">
-          ★ NIEUW RECORD ★
+          ★ NEW RECORD ★
         </p>
 
         <button id="restartBtn" class="main-button">
-          ↻ OPNIEUW
+          ↻ RESTART
         </button>
 
         <button id="gameOverMenuBtn" class="secondary-button">
@@ -774,7 +773,7 @@
 
         <h2>VICTORY!</h2>
 
-        <p>Je hebt de Star Destroyer verslagen.</p>
+        <p>You have defeated the Star Destroyer.</p>
 
         <div class="result-grid">
 
